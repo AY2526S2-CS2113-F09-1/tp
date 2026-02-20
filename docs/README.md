@@ -1,4 +1,4 @@
-# Duke
+# FitLogger
 
 {Give product intro here}
 
