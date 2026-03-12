@@ -9,9 +9,14 @@ public class FitLogger {
 
     public void run() {
         ui.showWelcome();
-        String command = ui.readCommand();
-        ui.temporaryOutput(command);
-        ui.showGoodbye();
+        boolean isExit = false;
+        while (!isExit) {
+            String command = ui.readCommand();
+            ui.temporaryOutput(command);
+            Command c = new ExitCommand();
+            c.execute(ui);
+            isExit = c.isExit();
+        }
     }
 
     public static void main(String[] args) {
