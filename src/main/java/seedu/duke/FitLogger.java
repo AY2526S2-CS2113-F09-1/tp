@@ -2,9 +2,11 @@ package seedu.duke;
 
 public class FitLogger {
     private Ui ui;
+    private Parser parser;
 
     public FitLogger() {
         ui = new Ui();
+        parser = new Parser();
     }
 
     public void run() {
@@ -12,11 +14,15 @@ public class FitLogger {
         boolean isExit = false;
         while (!isExit) {
             String command = ui.readCommand();
-            ui.temporaryOutput(command);
+            String[] temps = parser.parse(command);
             Command c = new ExitCommand();
             c.execute(ui);
+            for (String temp : temps) {
+                System.out.println(temp);
+            }
             isExit = c.isExit();
         }
+        ui.showGoodbye();
     }
 
     public static void main(String[] args) {

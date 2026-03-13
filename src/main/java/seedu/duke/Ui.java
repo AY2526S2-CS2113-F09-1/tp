@@ -2,7 +2,7 @@ package seedu.duke;
 import java.util.Scanner;
 
 public class Ui {
-    private static final String line = "-----------------------------------------------------";
+    private static final String LINE = "-----------------------------------------------------";
 
     private Scanner in = new Scanner(System.in);
 
@@ -21,7 +21,7 @@ public class Ui {
                         "                           __/ | __/ |           \n" +
                         "                          |___/ |___/            ";
         System.out.println(logo);
-        System.out.println(line);
+        System.out.println(LINE);
         System.out.println("Welcome to FitLogger!");
         System.out.println("Feel free to Add your own workout");
     }
