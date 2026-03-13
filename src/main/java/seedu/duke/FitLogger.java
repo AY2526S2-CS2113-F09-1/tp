@@ -16,10 +16,10 @@ public class FitLogger {
             String command = ui.readCommand();
             String[] temps = parser.parse(command);
             Command c = new ExitCommand();
-            c.execute(ui);
             for (String temp : temps) {
                 System.out.println(temp);
             }
+            c.execute(ui);
             isExit = c.isExit();
         }
         ui.showGoodbye();
