@@ -1,4 +1,4 @@
-package seedu.duke;
+package seedu.FitLogger;
 
 public class Parser {
     //temporary for now, change later when we know how much description there is

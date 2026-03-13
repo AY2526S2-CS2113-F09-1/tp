@@ -1,4 +1,4 @@
-package seedu.duke;
+package seedu.FitLogger;
 
 public abstract class Command {
     public abstract void execute(Ui ui);

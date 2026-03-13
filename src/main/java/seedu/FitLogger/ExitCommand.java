@@ -1,4 +1,4 @@
-package seedu.duke;
+package seedu.FitLogger;
 
 public class ExitCommand extends Command{
     public void execute(Ui ui) {

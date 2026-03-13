@@ -1,4 +1,4 @@
-package seedu.duke;
+package seedu.FitLogger;
 import java.util.Scanner;
 
 public class Ui {
