@@ -1,4 +1,4 @@
-package seedu.duke;
+package seedu.FitLogger;
 
 public class FitLogger {
     private Ui ui;
