@@ -25,7 +25,7 @@ public class FitLogger {
 
             //running workout temporary test
             LocalDate date = LocalDate.of(2026, 3, 13);
-            RunWorkout tempRunWorkout = new RunWorkout("night run", date , "10km", "2 hours");
+            RunWorkout tempRunWorkout = new RunWorkout("night run", date , 10.2, 2.3);
             System.out.println(tempRunWorkout);
 
             isExit = c.isExit();
