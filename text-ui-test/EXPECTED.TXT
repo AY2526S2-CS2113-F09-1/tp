@@ -12,5 +12,5 @@ Feel free to Add your own workout
 James
 Charles
 execute function run
-[Run] [ ] night run (Date: 2026-03-13) (Distance: 10km, Time: 2 hours)
+[Run] [ ] night run (Date: 2026-03-13) (Distance: 10.2, Time: 2.3)
 Goodbye! See you at your next workout!
