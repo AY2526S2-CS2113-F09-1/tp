@@ -27,7 +27,7 @@ class DeleteCommandTest {
         command.execute(ui);
 
         assertEquals(1, workouts.getSize());
-        assertFalse(workouts.getWorkout(0).getDescription().equalsIgnoreCase("Squat"));
+        assertFalse(workouts.getWorkoutAtIndex(0).getDescription().equalsIgnoreCase("Squat"));
         assertEquals("Deleted workout: Squat", ui.lastOutput);
     }
 
@@ -46,8 +46,8 @@ class DeleteCommandTest {
         command.execute(ui);
 
         assertEquals(2, workouts.getSize());
-        assertFalse(workouts.getWorkout(0).getDescription().equalsIgnoreCase("Deadlift"));
-        assertFalse(workouts.getWorkout(1).getDescription().equalsIgnoreCase("Deadlift"));
+        assertFalse(workouts.getWorkoutAtIndex(0).getDescription().equalsIgnoreCase("Deadlift"));
+        assertFalse(workouts.getWorkoutAtIndex(1).getDescription().equalsIgnoreCase("Deadlift"));
         assertEquals("Deleted workout: Deadlift", ui.lastOutput);
     }
 
@@ -61,7 +61,7 @@ class DeleteCommandTest {
         DeleteCommand command = new DeleteCommand(workouts, " ");
         command.execute(ui);
 
-        assertTrue(workouts.getWorkout(0).getDescription().equals("Deadlift"));
+        assertTrue(workouts.getWorkoutAtIndex(0).getDescription().equals("Deadlift"));
         assertEquals("Please specify a workout to delete. Usage: delete workout <WORKOUT_NAME> or delete <index>",
             ui.lastOutput);
     }
@@ -98,7 +98,7 @@ class DeleteCommandTest {
         private String lastOutput;
 
         @Override
-        public void temporaryOutput(String command) {
+        public void showMessage(String command) {
             lastOutput = command;
         }
     }

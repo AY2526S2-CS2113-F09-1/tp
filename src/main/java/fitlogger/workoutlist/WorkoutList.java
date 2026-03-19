@@ -39,7 +39,7 @@ public class WorkoutList {
         return workouts.size();
     }
 
-    public Workout getWorkout(int index) {
+    public Workout getWorkoutAtIndex(int index) {
         return workouts.get(index);
     }
 

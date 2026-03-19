@@ -40,7 +40,7 @@ public class DeleteCommand extends Command {
     @Override
     public void execute(Ui ui) {
         if (workoutName == null || workoutName.isBlank()) {
-            ui.temporaryOutput("Please specify a workout to delete. "
+            ui.showMessage("Please specify a workout to delete. "
                     + "Usage: delete workout <WORKOUT_NAME> or delete <index>");
             return;
         }
@@ -49,13 +49,13 @@ public class DeleteCommand extends Command {
         int indexToDelete = findWorkoutIndex(normalizedName);
 
         if (indexToDelete != -1) {
-            String deletedWorkoutName = workouts.getWorkout(indexToDelete).getDescription();
+            String deletedWorkoutName = workouts.getWorkoutAtIndex(indexToDelete).getDescription();
             workouts.deleteWorkout(indexToDelete);
-            ui.temporaryOutput("Deleted workout: " + deletedWorkoutName);
+            ui.showMessage("Deleted workout: " + deletedWorkoutName);
             return;
         }
 
-        ui.temporaryOutput("Workout not found: " + normalizedName);
+        ui.showMessage("Workout not found: " + normalizedName);
     }
 
     /**
@@ -103,7 +103,7 @@ public class DeleteCommand extends Command {
      */
     private int findWorkoutIndexByName(String workoutNameToFind) {
         for (int i = 0; i < workouts.getSize(); i++) {
-            Workout workout = workouts.getWorkout(i);
+            Workout workout = workouts.getWorkoutAtIndex(i);
             if (workout.getDescription().equalsIgnoreCase(workoutNameToFind)) {
                 return i;
             }

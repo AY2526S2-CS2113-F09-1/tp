@@ -27,7 +27,7 @@ class WorkoutListTest {
         list.addWorkout(run);
         list.addWorkout(lift);
         assertEquals(2, list.getSize());
-        assertEquals(run, list.getWorkout(0));
+        assertEquals(run, list.getWorkoutAtIndex(0));
     }
 
     @Test
@@ -42,7 +42,7 @@ class WorkoutListTest {
         list.addWorkout(run);
         list.markDone(0);
         // Assuming your Workout class has an isDone() method
-        assertTrue(list.getWorkout(0).getDoneStatus());
+        assertTrue(list.getWorkoutAtIndex(0).getDoneStatus());
     }
 
     @Test

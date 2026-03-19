@@ -1,5 +1,7 @@
 package fitlogger.ui;
 
+import fitlogger.workout.Workout;
+
 import java.util.Scanner;
 
 public class Ui {
@@ -21,17 +23,29 @@ public class Ui {
                         "|_|    |_|\\__|______\\___/ \\__, |\\__, |\\___|_|    \n" +
                         "                           __/ | __/ |           \n" +
                         "                          |___/ |___/            ";
-        System.out.println(logo);
-        System.out.println(LINE);
-        System.out.println("Welcome to FitLogger!");
-        System.out.println("Feel free to Add your own workout");
+        showMessage(logo);
+        showLine();
+        showMessage("Welcome to FitLogger!");
+        showMessage("Feel free to Add your own workout");
     }
 
     public void showGoodbye() {
-        System.out.println("Goodbye! See you at your next workout!");
+        showMessage("Goodbye! See you at your next workout!");
     }
 
-    public void temporaryOutput(String command) {
+    public void showMessage(String command) {
         System.out.println(command);
+    }
+
+    public void showMessageNoNewline(String command) {
+        System.out.print(command);
+    }
+
+    public void showLine() {
+        showMessage(LINE);
+    }
+
+    public void printWorkout(Workout workout) {
+        showMessage(workout.toString());
     }
 }
