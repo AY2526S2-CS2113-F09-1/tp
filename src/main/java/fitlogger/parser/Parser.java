@@ -39,6 +39,8 @@ public class Parser {
         case "add-run":
             assert parts[1] != null : "Description is missing";
             String[] runInfo = splitInput(parts[1], "d/|t/", 3);
+            assert runInfo[1].trim().matches("\\d+(\\.\\d+)?") : "Expected a number but got: " + runInfo[1];
+            assert runInfo[2].trim().matches("\\d+(\\.\\d+)?") : "Expected a number but got: " + runInfo[2];
             Workout runToBeAdded = new RunWorkout(runInfo[0], LocalDate.now(),
                     Double.parseDouble(runInfo[1]), Double.parseDouble(runInfo[2]));
             return new AddWorkoutCommand(workouts, runToBeAdded);
