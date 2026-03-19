@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import fitlogger.command.DeleteCommand;
 import fitlogger.workout.Running;
 import fitlogger.workoutlist.WorkoutList;
+import fitlogger.ui.Ui;
 
 class DeleteCommandTest {
     @Test
