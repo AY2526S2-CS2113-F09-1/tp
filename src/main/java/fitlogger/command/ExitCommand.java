@@ -29,6 +29,7 @@ public class ExitCommand extends Command {
      */
     public void execute(Ui ui) {
         storage.saveData(workouts.getWorkouts());
+        ui.showMessage("Workouts saved.");
         ui.showGoodbye();
     }
 

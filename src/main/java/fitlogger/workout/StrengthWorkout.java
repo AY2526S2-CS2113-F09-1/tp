@@ -46,15 +46,14 @@ public class StrengthWorkout extends Workout {
     /**
      * Formats the workout details into a string for saving to a text file.
      *
-     * <p>Format: {@code L | <status> | <description> | <date> | <weight> | <sets> | <reps>}
+     * <p>Format: {@code L | <description> | <date> | <weight> | <sets> | <reps>}
      *
      * @return A formatted string suitable for local storage.
      */
     @Override
     public String toFileFormat() {
-        // e.g., L | 0 | Bench Press | 2026-03-13 | 80.5 | 3 | 8
-        String status = isDone ? "1" : "0";
-        return "L | " + status + " | " + description + " | " + date + " | " + weight + " | " + sets + " | " + reps;
+        // e.g., L | Bench Press | 2026-03-13 | 80.5 | 3 | 8
+        return "L | " + description + " | " + date + " | " + weight + " | " + sets + " | " + reps;
     }
 
     /**
@@ -64,6 +63,6 @@ public class StrengthWorkout extends Workout {
      */
     @Override
     public String toString() {
-        return "[L]" + super.toString() + " - " + weight + "kg (" + sets + " sets of " + reps + " reps)";
+        return "[Lift] " + super.toString() + " (" + weight + "kg, " + sets + " sets of " + reps + " reps)";
     }
 }

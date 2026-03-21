@@ -25,27 +25,42 @@ public class Ui {
         showMessage(logo);
         showLine();
         showMessage("Welcome to FitLogger!");
-        showMessage("Feel free to Add your own workout");
+        showMessage("Type 'help' to see available commands.");
     }
 
     public void showGoodbye() {
         showMessage("Goodbye! See you at your next workout!");
     }
 
-    public void showMessage(String command) {
-        System.out.println(command);
+    public void showMessage(String message) {
+        System.out.println(message);
+    }
+
+    /**
+     * Displays an error message prefixed with "[ERROR]".
+     * All {@link fitlogger.exception.FitLoggerException} messages should be
+     * routed here rather than printed directly.
+     *
+     * @param message The error description to display.
+     */
+    public void showError(String message) {
+        System.out.println("[ERROR] " + message);
     }
 
     public void showHelpMenu() {
-        String helpMessage = "Command Guide:\n" + "    help: List available commands\n"
-                + "    delete workout <WORKOUT_NAME>: Delete workout by name\n"
-                + "    delete workout <index>: Delete workout by index\n"
-                + "    history: View saved workouts\n" + "    exit: Close FitLogger";
-        System.out.println(helpMessage);
+        String helpMessage = "Command Guide:\n"
+                + "    help                                       List available commands\n"
+                + "    add-run <n> d/<dist> t/<mins>              Log a run\n"
+                + "    add-lift <n> w/<kg> s/<sets> r/<reps>      Log a lift workout\n"
+                + "    history                                    View all logged workouts\n"
+                + "    delete <index>                             Delete workout by number\n"
+                + "    delete <name>                              Delete workout by name\n"
+                + "    exit                                       Save and close FitLogger";
+        showMessage(helpMessage);
     }
 
-    public void showMessageNoNewline(String command) {
-        System.out.print(command);
+    public void showMessageNoNewline(String message) {
+        System.out.print(message);
     }
 
     public void showLine() {
