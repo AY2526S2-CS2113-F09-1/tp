@@ -38,14 +38,6 @@ class WorkoutListTest {
     }
 
     @Test
-    public void markDone_validIndex_changesStatus() {
-        list.addWorkout(run);
-        list.markDone(0);
-        // Assuming your Workout class has an isDone() method
-        assertTrue(list.getWorkoutAtIndex(0).getDoneStatus());
-    }
-
-    @Test
     public void findWorkout_matchingKeyword_returnsTrue() {
         list.addWorkout(run); // "Morning Run"
         assertTrue(list.findWorkout(0, "Morning"));

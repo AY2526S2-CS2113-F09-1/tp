@@ -14,8 +14,9 @@ public class FitLogger {
 
     public FitLogger() {
         ui = new Ui();
-        storage = new Storage(); // temp: please change
-        workouts = new WorkoutList(); // temp: please change
+        storage = new Storage();
+        workouts = new WorkoutList();
+        storage.loadData().forEach(workouts::addWorkout);
     }
 
     public void run() {
@@ -28,11 +29,10 @@ public class FitLogger {
                     continue;
                 }
                 Command c = Parser.parse(command, workouts, storage);
-
                 c.execute(ui);
                 isExit = c.isExit();
             } catch (FitLoggerException e) {
-                System.out.println(e.getMessage());
+                ui.showError(e.getMessage());
             }
         }
     }

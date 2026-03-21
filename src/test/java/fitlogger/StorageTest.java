@@ -58,7 +58,7 @@ class StorageTest {
 
         List<String> lines = Files.readAllLines(new File(FILE_PATH).toPath());
         assertEquals(1, lines.size());
-        assertEquals("R | 0 | Morning run | 2024-03-15 | 5.0 | 1.0", lines.get(0));
+        assertEquals("R | Morning run | 2024-03-15 | 5.0 | 1.0", lines.get(0));
     }
 
     @Test
@@ -73,23 +73,8 @@ class StorageTest {
 
         List<String> lines = Files.readAllLines(new File(FILE_PATH).toPath());
         assertEquals(2, lines.size());
-        assertEquals("R | 0 | Easy jog | 2024-03-10 | 3.0 | 1.0", lines.get(0));
-        assertEquals("R | 0 | Long run | 2024-03-12 | 10.5 | 1.0", lines.get(1));
-    }
-
-    @Test
-    void saveData_markedAsDoneWorkout_savesDoneStatus() throws IOException {
-        List<Workout> workouts = new ArrayList<>();
-        RunWorkout run = new RunWorkout("Tempo run", LocalDate.of(2024, 3, 20),
-                8.0, 1.0);
-        run.markAsDone();
-        workouts.add(run);
-
-        storage.saveData(workouts);
-
-        List<String> lines = Files.readAllLines(new File(FILE_PATH).toPath());
-        assertEquals(1, lines.size());
-        assertEquals("R | 1 | Tempo run | 2024-03-20 | 8.0 | 1.0", lines.get(0));
+        assertEquals("R | Easy jog | 2024-03-10 | 3.0 | 1.0", lines.get(0));
+        assertEquals("R | Long run | 2024-03-12 | 10.5 | 1.0", lines.get(1));
     }
 
     @Test

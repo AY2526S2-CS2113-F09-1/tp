@@ -31,23 +31,22 @@ public class Storage {
     private static final String FILE_PATH = "data/fitlogger.txt";
 
     /** Expected number of fields for each workout type. */
-    private static final int RUN_FIELD_COUNT = 6;
-    private static final int STRENGTH_FIELD_COUNT = 7;
+    private static final int RUN_FIELD_COUNT = 5;
+    private static final int STRENGTH_FIELD_COUNT = 6;
 
     /** Index constants for shared fields. */
     private static final int INDEX_TYPE = 0;
-    private static final int INDEX_STATUS = 1;
-    private static final int INDEX_DESCRIPTION = 2;
-    private static final int INDEX_DATE = 3;
+    private static final int INDEX_DESCRIPTION = 1;
+    private static final int INDEX_DATE = 2;
 
     /** Index constants for RunWorkout-specific fields. */
-    private static final int INDEX_RUN_DISTANCE = 4;
-    private static final int INDEX_RUN_DURATION = 5;
+    private static final int INDEX_RUN_DISTANCE = 3;
+    private static final int INDEX_RUN_DURATION = 4;
 
     /** Index constants for StrengthWorkout-specific fields. */
-    private static final int INDEX_STRENGTH_WEIGHT = 4;
-    private static final int INDEX_STRENGTH_SETS = 5;
-    private static final int INDEX_STRENGTH_REPS = 6;
+    private static final int INDEX_STRENGTH_WEIGHT = 3;
+    private static final int INDEX_STRENGTH_SETS = 4;
+    private static final int INDEX_STRENGTH_REPS = 5;
 
     // ── saveData ─────────────────────────────────────────────────────────────
 
@@ -66,9 +65,7 @@ public class Storage {
         // Ensure the data/ directory exists before writing
         File parentDir = file.getParentFile();
         if (parentDir != null && !parentDir.exists()) {
-            if (!parentDir.mkdirs()) {
-                System.out.println("Warning: could not create data directory.");
-            }
+            parentDir.mkdirs();
         }
 
         try (FileWriter writer = new FileWriter(file)) {
@@ -76,9 +73,8 @@ public class Storage {
                 writer.write(workout.toFileFormat());
                 writer.write(System.lineSeparator());
             }
-            System.out.println("Workouts saved to " + FILE_PATH);
         } catch (IOException e) {
-            System.out.println("Error saving workouts: " + e.getMessage());
+            System.err.println("Error saving workouts: " + e.getMessage());
         }
     }
 
@@ -158,7 +154,7 @@ public class Storage {
 
     /**
      * Reconstructs a {@link RunWorkout} from split save-file fields.
-     * Expected format: {@code R | 0/1 | description | yyyy-MM-dd | distance | duration}
+     * Expected format: {@code R | description | yyyy-MM-dd | distance | duration}
      *
      * @param fields Fields split from a single save-file line.
      * @return The reconstructed {@link RunWorkout}.
@@ -169,22 +165,18 @@ public class Storage {
             throw new IllegalArgumentException("RunWorkout entry has too few fields.");
         }
 
-        boolean isDone = fields[INDEX_STATUS].trim().equals("1");
         String description = fields[INDEX_DESCRIPTION].trim();
         LocalDate date = parseDate(fields[INDEX_DATE]);
         double distance = parseDouble(fields[INDEX_RUN_DISTANCE], "distance");
         double duration = parseDouble(fields[INDEX_RUN_DURATION], "duration");
 
         RunWorkout run = new RunWorkout(description, date, distance, duration);
-        if (isDone) {
-            run.markAsDone();
-        }
         return run;
     }
 
     /**
      * Reconstructs a {@link StrengthWorkout} from split save-file fields.
-     * Expected format: {@code L | 0/1 | description | yyyy-MM-dd | weight | sets | reps}
+     * Expected format: {@code L | description | yyyy-MM-dd | weight | sets | reps}
      *
      * @param fields Fields split from a single save-file line.
      * @return The reconstructed {@link StrengthWorkout}.
@@ -195,7 +187,6 @@ public class Storage {
             throw new IllegalArgumentException("StrengthWorkout entry has too few fields.");
         }
 
-        boolean isDone = fields[INDEX_STATUS].trim().equals("1");
         String description = fields[INDEX_DESCRIPTION].trim();
         LocalDate date = parseDate(fields[INDEX_DATE]);
         double weight = parseDouble(fields[INDEX_STRENGTH_WEIGHT], "weight");
@@ -203,9 +194,6 @@ public class Storage {
         int reps = parseInt(fields[INDEX_STRENGTH_REPS], "reps");
 
         StrengthWorkout strength = new StrengthWorkout(description, weight, sets, reps, date);
-        if (isDone) {
-            strength.markAsDone();
-        }
         return strength;
     }
 

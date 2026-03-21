@@ -19,14 +19,6 @@ public class WorkoutList {
         workouts.remove(workoutToRemove);
     }
 
-    public void markDone(int index) {
-        workouts.get(index).markAsDone();
-    }
-
-    public void markNotDone(int index) {
-        workouts.get(index).markAsNotDone();
-    }
-
     public boolean findWorkout(int index, String keyword) {
         return workouts.get(index).getDescription().contains(keyword);
     }

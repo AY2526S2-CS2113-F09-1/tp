@@ -15,18 +15,10 @@ import fitlogger.storage.Storage;
 
 import java.time.LocalDate;
 
-// import java.util.logging.Level;
-// import java.util.logging.Logger;
-
 public class Parser {
-    // temporary for now, change later when we know how much description there is
-    private static final int MAX_LIFT_INFO = 100;
-    private static final int MAX_RUN_INFO = 50;
-    // private static Logger logger = Logger.getLogger("Foo");
 
     public static Command parse(String fullCommand, WorkoutList workouts, Storage storage)
             throws FitLoggerException {
-        // logger.log(Level.INFO, "going to start parsing");
         assert fullCommand != null : "Parser.parse was called with a null string!";
         String[] parts = splitInput(fullCommand, " ", 2);
         String commandWord = parts[0].toLowerCase();
@@ -40,58 +32,103 @@ public class Parser {
             return new ExitCommand(storage, workouts);
 
         case "add-run":
-            assert parts[1] != null : "Description is missing";
-            String[] runInfo = splitInput(parts[1], "d/|t/", 3);
-            assert runInfo[1].trim().matches("\\d+(\\.\\d+)?") : "Expected a number but got: " + runInfo[1];
-            assert runInfo[2].trim().matches("\\d+(\\.\\d+)?") : "Expected a number but got: " + runInfo[2];
-            Workout runToBeAdded = new RunWorkout(runInfo[0], LocalDate.now(),
-                    Double.parseDouble(runInfo[1]), Double.parseDouble(runInfo[2]));
-            return new AddWorkoutCommand(workouts, runToBeAdded);
+            return parseAddRun(arguments, workouts);
 
-        case "add-strength":
-            return parseAddStrength(arguments, workouts);
+        case "add-lift":
+            return parseAddLift(arguments, workouts);
 
         case "list":
-
+            // fallthrough intentional — same behaviour as history
         case "history":
             return new ViewHistoryCommand(workouts);
 
         case "help":
             return new HelpCommand();
 
-
         default:
             throw new FitLoggerException("I'm sorry, I don't know what '" + commandWord
-                    + "' means.\n" + "See 'help'");
+                    + "' means.\nSee 'help'");
         }
     }
 
     /**
-     * Parses an add-strength command.
+     * Parses an add-run command.
+     *
+     * <p>Expected format: {@code add-run <name> d/<distance> t/<durationMinutes>}
+     *
+     * @param arguments Everything after "add-run ".
+     * @param workouts  The active workout list.
+     * @return An {@link AddWorkoutCommand} wrapping a new {@link RunWorkout}.
+     * @throws FitLoggerException if arguments are missing, malformed, or contain
+     *                            illegal storage characters.
+     */
+    private static Command parseAddRun(String arguments, WorkoutList workouts)
+            throws FitLoggerException {
+        if (arguments.isBlank()) {
+            throw new FitLoggerException(
+                    "Missing arguments for add-run.\n"
+                            + "Usage: add-run <name> d/<distance> t/<durationMinutes>");
+        }
+
+        String[] runInfo = splitInput(arguments, "d/|t/", 3);
+
+        if (runInfo.length < 3) {
+            throw new FitLoggerException(
+                    "Invalid format for add-run.\n"
+                            + "Usage: add-run <name> d/<distance> t/<durationMinutes>");
+        }
+
+        String name = runInfo[0].trim();
+        validateNoStorageDelimiters(name, "Run name");
+
+        double distance;
+        double durationMinutes;
+        try {
+            distance = Double.parseDouble(runInfo[1].trim());
+            durationMinutes = Double.parseDouble(runInfo[2].trim());
+        } catch (NumberFormatException e) {
+            throw new FitLoggerException(
+                    "Distance and duration must be valid numbers.\n"
+                            + "Usage: add-run <name> d/<distance> t/<durationMinutes>");
+        }
+
+        if (distance <= 0) {
+            throw new FitLoggerException("Distance must be a positive number.");
+        }
+        if (durationMinutes <= 0) {
+            throw new FitLoggerException("Duration must be a positive number.");
+        }
+
+        Workout run = new RunWorkout(name, LocalDate.now(), distance, durationMinutes);
+        return new AddWorkoutCommand(workouts, run);
+    }
+
+    /**
+     * Parses an add-lift command.
      *
      * <p>Expected format:
-     * {@code add-strength <name> w/<weightKg> s/<sets> r/<reps>}
+     * {@code add-lift <name> w/<weightKg> s/<sets> r/<reps>}
      *
-     * @param arguments Everything after "add-strength ".
+     * @param arguments Everything after "add-lift ".
      * @param workouts  The active workout list.
      * @return An {@link AddWorkoutCommand} wrapping a new {@link StrengthWorkout}.
      * @throws FitLoggerException if arguments are missing, malformed, or contain
      *                            illegal storage characters.
      */
-    private static Command parseAddStrength(String arguments, WorkoutList workouts)
+    private static Command parseAddLift(String arguments, WorkoutList workouts)
             throws FitLoggerException {
         if (arguments.isBlank()) {
             throw new FitLoggerException(
-                    "Missing arguments for add-strength.\n"
-                            + "Usage: add-strength <name> w/<weightKg> s/<sets> r/<reps>");
+                    "Missing arguments for add-lift.\n"
+                            + "Usage: add-lift <name> w/<weightKg> s/<sets> r/<reps>");
         }
 
         String[] info = splitInput(arguments, "w/|s/|r/", 4);
 
         if (info.length < 4) {
             throw new FitLoggerException(
-                    "Invalid format for add-strength.\n"
-                            + "Usage: add-strength <name> w/<weightKg> s/<sets> r/<reps>");
+                    "Invalid format for add-lift.\n"
+                            + "Usage: add-lift <name> w/<weightKg> s/<sets> r/<reps>");
         }
 
         String name = info[0].trim();
@@ -107,7 +144,7 @@ public class Parser {
         } catch (NumberFormatException e) {
             throw new FitLoggerException(
                     "Weight must be a decimal number; sets and reps must be integers.\n"
-                            + "Usage: add-strength <name> w/<weightKg> s/<sets> r/<reps>");
+                            + "Usage: add-lift <name> w/<weightKg> s/<sets> r/<reps>");
         }
 
         if (weight < 0) {
@@ -132,7 +169,7 @@ public class Parser {
      * @param fieldName Human-readable field name used in the error message.
      * @throws FitLoggerException if the value contains a forbidden character.
      */
-    static void validateNoStorageDelimiters(String value, String fieldName)
+    public static void validateNoStorageDelimiters(String value, String fieldName)
             throws FitLoggerException {
         if (value.contains("|") || value.contains("/")) {
             throw new FitLoggerException(
@@ -146,7 +183,6 @@ public class Parser {
      * stripping surrounding whitespace, returning at most {@code maxSplit} parts.
      */
     public static String[] splitInput(String line, String splitCharacter, int maxSplit) {
-        //use \\s* to remove whitespace
         return line.trim().split("\\s*" + splitCharacter + "\\s*", maxSplit);
     }
 }
