@@ -26,7 +26,7 @@ public class ExitCommand extends Command {
      * @param profile
      */
     public void execute(Storage storage, WorkoutList workouts, Ui ui, UserProfile profile) {
-        storage.saveData(workouts.getWorkouts());
+        storage.saveData(workouts.getWorkouts(), profile);
         ui.showMessage("Workouts saved.");
         ui.showGoodbye();
     }

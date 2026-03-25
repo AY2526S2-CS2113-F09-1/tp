@@ -2,6 +2,7 @@ package fitlogger;
 
 import fitlogger.command.ViewHistoryCommand;
 import fitlogger.exception.FitLoggerException;
+import fitlogger.profile.UserProfile;
 import fitlogger.storage.Storage;
 import fitlogger.ui.Ui;
 import fitlogger.workout.RunWorkout;
@@ -21,6 +22,7 @@ class HistoryCommandTest {
     private TestUi ui;
     private Storage storage;
     private ViewHistoryCommand historyCommand;
+    private UserProfile profile;
 
     @BeforeEach
     void setUp() {
@@ -28,6 +30,7 @@ class HistoryCommandTest {
         ui = new TestUi();
         storage = new Storage();
         historyCommand = new ViewHistoryCommand();
+        profile = new UserProfile();
     }
 
     @Test

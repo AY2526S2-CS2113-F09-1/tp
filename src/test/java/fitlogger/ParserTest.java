@@ -4,6 +4,7 @@ import fitlogger.command.AddWorkoutCommand;
 import fitlogger.command.Command;
 import fitlogger.exception.FitLoggerException;
 import fitlogger.parser.Parser;
+import fitlogger.profile.UserProfile;
 import fitlogger.storage.Storage;
 import fitlogger.workout.Workout;
 import fitlogger.workout.RunWorkout;
@@ -22,12 +23,14 @@ class ParserTest {
     private WorkoutList workouts;
     private Storage storage;
     private TestUi ui;
+    private UserProfile profile;
 
     @BeforeEach
     void setUp() {
         workouts = new WorkoutList();
         storage = new Storage();
         ui = new TestUi();
+        profile = new UserProfile();
     }
 
     // ── add-lift: happy path ──────────────────────────────────────────────

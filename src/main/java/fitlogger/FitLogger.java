@@ -19,7 +19,7 @@ public class FitLogger {
         storage = new Storage();
         workouts = new WorkoutList();
         profile = new UserProfile();
-        storage.loadData().forEach(workouts::addWorkout);
+        storage.loadData(profile).forEach(workouts::addWorkout);
     }
 
     public void run() {

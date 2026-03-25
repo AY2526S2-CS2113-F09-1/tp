@@ -34,4 +34,8 @@ public class UserProfile {
     public void setHeight(double height) {
         this.height = height;
     }
+
+    public String toFileFormat() {
+        return "name: " + name + " height: " + height + " weight: " + weight;
+    }
 }

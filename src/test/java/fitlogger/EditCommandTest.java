@@ -2,6 +2,7 @@ package fitlogger;
 
 import fitlogger.command.EditCommand;
 import fitlogger.exception.FitLoggerException;
+import fitlogger.profile.UserProfile;
 import fitlogger.storage.Storage;
 import fitlogger.ui.Ui;
 import fitlogger.workout.RunWorkout;
@@ -23,6 +24,7 @@ class EditCommandTest {
         WorkoutList workouts = new WorkoutList();
         workouts.addWorkout(new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 13)));
         TestUi ui = new TestUi();
+        UserProfile profile = new UserProfile();
 
         EditCommand command = new EditCommand(1, "weight", "85.5");
         command.execute(STORAGE, workouts, ui, profile);
@@ -37,6 +39,7 @@ class EditCommandTest {
         WorkoutList workouts = new WorkoutList();
         workouts.addWorkout(new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 13)));
         TestUi ui = new TestUi();
+        UserProfile profile = new UserProfile();
 
         EditCommand command = new EditCommand(1, "reps", "10");
         command.execute(STORAGE, workouts, ui, profile);
@@ -51,6 +54,7 @@ class EditCommandTest {
         WorkoutList workouts = new WorkoutList();
         workouts.addWorkout(new RunWorkout("Morning Jog", LocalDate.of(2026, 3, 13), 5.0, 30.0));
         TestUi ui = new TestUi();
+        UserProfile profile = new UserProfile();
 
         EditCommand command = new EditCommand(1, "distance", "7.5");
         command.execute(STORAGE, workouts, ui, profile);
@@ -65,6 +69,7 @@ class EditCommandTest {
         WorkoutList workouts = new WorkoutList();
         workouts.addWorkout(new RunWorkout("Morning Jog", LocalDate.of(2026, 3, 13), 5.0, 30.0));
         TestUi ui = new TestUi();
+        UserProfile profile = new UserProfile();
 
         EditCommand command = new EditCommand(2, "distance", "7.5");
         command.execute(STORAGE, workouts, ui, profile);
@@ -77,6 +82,7 @@ class EditCommandTest {
         WorkoutList workouts = new WorkoutList();
         workouts.addWorkout(new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 13)));
         TestUi ui = new TestUi();
+        UserProfile profile = new UserProfile();
 
         EditCommand command = new EditCommand(1, "name", "Bench | Press");
         command.execute(STORAGE, workouts, ui, profile);
@@ -91,6 +97,7 @@ class EditCommandTest {
         WorkoutList workouts = new WorkoutList();
         workouts.addWorkout(new RunWorkout("Morning Jog", LocalDate.of(2026, 3, 13), 5.0, 30.0));
         TestUi ui = new TestUi();
+        UserProfile profile = new UserProfile();
 
         EditCommand command = new EditCommand(1, "description", "push/pull");
         command.execute(STORAGE, workouts, ui, profile);
@@ -105,6 +112,7 @@ class EditCommandTest {
         WorkoutList workouts = new WorkoutList();
         workouts.addWorkout(new RunWorkout("Morning Jog", LocalDate.of(2026, 3, 13), 5.0, 30.0));
         TestUi ui = new TestUi();
+        UserProfile profile = new UserProfile();
 
         EditCommand command = new EditCommand(1, "distance", "NaN");
         command.execute(STORAGE, workouts, ui, profile);
@@ -119,6 +127,7 @@ class EditCommandTest {
         WorkoutList workouts = new WorkoutList();
         workouts.addWorkout(new RunWorkout("Morning Jog", LocalDate.of(2026, 3, 13), 5.0, 30.0));
         TestUi ui = new TestUi();
+        UserProfile profile = new UserProfile();
 
         EditCommand command = new EditCommand(1, "distance", "Infinity");
         command.execute(STORAGE, workouts, ui, profile);

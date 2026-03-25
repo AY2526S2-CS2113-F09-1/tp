@@ -1,6 +1,8 @@
 package fitlogger;
 
 import fitlogger.exception.FitLoggerException;
+import fitlogger.parser.Parser;
+import fitlogger.profile.UserProfile;
 import fitlogger.storage.Storage;
 import fitlogger.workout.RunWorkout;
 import org.junit.jupiter.api.AfterEach;
@@ -41,8 +43,9 @@ class StorageTest {
     @Test
     void saveData_emptyList_createsEmptyFile() throws IOException {
         List<Workout> emptyList = new ArrayList<>();
+        UserProfile profile = new UserProfile();
 
-        storage.saveData(emptyList);
+        storage.saveData(emptyList, profile);
 
         File file = new File(FILE_PATH);
         assertTrue(file.exists(), "File should be created even for empty FitLogger.command.workout list");
@@ -55,7 +58,8 @@ class StorageTest {
         workouts.add(new RunWorkout("Morning run", LocalDate.of(2024, 3, 15),
                 5.0, 1.0));
 
-        storage.saveData(workouts);
+        UserProfile profile = new UserProfile();
+        storage.saveData(workouts, profile);
 
         List<String> lines = Files.readAllLines(new File(FILE_PATH).toPath());
         assertEquals(1, lines.size());
@@ -70,7 +74,8 @@ class StorageTest {
         workouts.add(new RunWorkout("Long run", LocalDate.of(2024, 3, 12),
                 10.5, 1.0));
 
-        storage.saveData(workouts);
+        UserProfile profile = new UserProfile();
+        storage.saveData(workouts, profile);
 
         List<String> lines = Files.readAllLines(new File(FILE_PATH).toPath());
         assertEquals(2, lines.size());
@@ -90,7 +95,8 @@ class StorageTest {
         List<Workout> workouts = new ArrayList<>();
         workouts.add(new RunWorkout("Test run", LocalDate.now(), 1.0, 1.0));
 
-        storage.saveData(workouts);
+        UserProfile profile = new UserProfile();
+        storage.saveData(workouts, profile);
 
         assertTrue(dir.exists(), "data/ directory should be created automatically");
         assertTrue(new File(FILE_PATH).exists(), "fitlogger.txt should be created");
