@@ -32,7 +32,7 @@ class HistoryCommandTest {
 
     @Test
     void execute_emptyList_showsOnlyHeader() {
-        historyCommand.execute(storage, workouts, ui);
+        historyCommand.execute(storage, workouts, ui, profile);
 
         assertTrue(ui.getOutputs().contains("Here's your past exercises"));
         assertEquals(3, ui.getOutputs().size());
@@ -43,7 +43,7 @@ class HistoryCommandTest {
         Storage storage = new Storage();
         workouts.addWorkout(new RunWorkout("Morning Run", LocalDate.of(2026, 3, 15), 5.0, 1.0));
 
-        historyCommand.execute(storage, workouts, ui);
+        historyCommand.execute(storage, workouts, ui, profile);
 
         assertTrue(ui.getOutputs().stream().anyMatch(s -> s.contains("1. ")));
         assertTrue(ui.getOutputs().stream().anyMatch(s -> s.contains("Morning Run")));
@@ -55,7 +55,7 @@ class HistoryCommandTest {
         workouts.addWorkout(new RunWorkout("test 1", LocalDate.of(2026, 3, 20), 1.0, 1.0));
         workouts.addWorkout(new RunWorkout("test 2", LocalDate.of(2026, 3, 21), 5.0, 30.0));
 
-        historyCommand.execute(storage, workouts, ui);
+        historyCommand.execute(storage, workouts, ui, profile);
 
         List<String> results = ui.getOutputs();
 

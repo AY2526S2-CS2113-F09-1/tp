@@ -25,7 +25,7 @@ class EditCommandTest {
         TestUi ui = new TestUi();
 
         EditCommand command = new EditCommand(1, "weight", "85.5");
-        command.execute(STORAGE, workouts, ui);
+        command.execute(STORAGE, workouts, ui, profile);
 
         StrengthWorkout edited = (StrengthWorkout) workouts.getWorkoutAtIndex(0);
         assertEquals(85.5, edited.getWeight(), 0.001);
@@ -39,7 +39,7 @@ class EditCommandTest {
         TestUi ui = new TestUi();
 
         EditCommand command = new EditCommand(1, "reps", "10");
-        command.execute(STORAGE, workouts, ui);
+        command.execute(STORAGE, workouts, ui, profile);
 
         StrengthWorkout edited = (StrengthWorkout) workouts.getWorkoutAtIndex(0);
         assertEquals(10, edited.getReps());
@@ -53,7 +53,7 @@ class EditCommandTest {
         TestUi ui = new TestUi();
 
         EditCommand command = new EditCommand(1, "distance", "7.5");
-        command.execute(STORAGE, workouts, ui);
+        command.execute(STORAGE, workouts, ui, profile);
 
         RunWorkout edited = (RunWorkout) workouts.getWorkoutAtIndex(0);
         assertEquals(7.5, edited.getDistance(), 0.001);
@@ -67,7 +67,7 @@ class EditCommandTest {
         TestUi ui = new TestUi();
 
         EditCommand command = new EditCommand(2, "distance", "7.5");
-        command.execute(STORAGE, workouts, ui);
+        command.execute(STORAGE, workouts, ui, profile);
 
         assertEquals("Invalid workout index: 2", ui.lastOutput);
     }
@@ -79,7 +79,7 @@ class EditCommandTest {
         TestUi ui = new TestUi();
 
         EditCommand command = new EditCommand(1, "name", "Bench | Press");
-        command.execute(STORAGE, workouts, ui);
+        command.execute(STORAGE, workouts, ui, profile);
 
         StrengthWorkout workout = (StrengthWorkout) workouts.getWorkoutAtIndex(0);
         assertEquals("Bench Press", workout.getDescription());
@@ -93,7 +93,7 @@ class EditCommandTest {
         TestUi ui = new TestUi();
 
         EditCommand command = new EditCommand(1, "description", "push/pull");
-        command.execute(STORAGE, workouts, ui);
+        command.execute(STORAGE, workouts, ui, profile);
 
         RunWorkout workout = (RunWorkout) workouts.getWorkoutAtIndex(0);
         assertEquals("Morning Jog", workout.getDescription());
@@ -107,7 +107,7 @@ class EditCommandTest {
         TestUi ui = new TestUi();
 
         EditCommand command = new EditCommand(1, "distance", "NaN");
-        command.execute(STORAGE, workouts, ui);
+        command.execute(STORAGE, workouts, ui, profile);
 
         RunWorkout workout = (RunWorkout) workouts.getWorkoutAtIndex(0);
         assertEquals(5.0, workout.getDistance(), 0.001);
@@ -121,7 +121,7 @@ class EditCommandTest {
         TestUi ui = new TestUi();
 
         EditCommand command = new EditCommand(1, "distance", "Infinity");
-        command.execute(STORAGE, workouts, ui);
+        command.execute(STORAGE, workouts, ui, profile);
 
         RunWorkout workout = (RunWorkout) workouts.getWorkoutAtIndex(0);
         assertEquals(5.0, workout.getDistance(), 0.001);

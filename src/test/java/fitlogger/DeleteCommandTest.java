@@ -25,7 +25,7 @@ class DeleteCommandTest {
         TestUi ui = new TestUi();
 
         DeleteCommand command = new DeleteCommand("squat");
-        command.execute(storage, workouts, ui);
+        command.execute(storage, workouts, ui, profile);
 
         assertEquals(1, workouts.getSize());
         assertFalse(workouts.getWorkoutAtIndex(0).getDescription().equalsIgnoreCase("Squat"));
@@ -42,7 +42,7 @@ class DeleteCommandTest {
         TestUi ui = new TestUi();
 
         DeleteCommand command = new DeleteCommand("3");
-        command.execute(storage, workouts, ui);
+        command.execute(storage, workouts, ui, profile);
 
         assertEquals(2, workouts.getSize());
         assertFalse(workouts.getWorkoutAtIndex(0).getDescription().equalsIgnoreCase("Deadlift"));
@@ -58,7 +58,7 @@ class DeleteCommandTest {
         TestUi ui = new TestUi();
 
         DeleteCommand command = new DeleteCommand(" ");
-        command.execute(storage, workouts, ui);
+        command.execute(storage, workouts, ui, profile);
 
         assertTrue(workouts.getWorkoutAtIndex(0).getDescription().equals("Deadlift"));
         assertEquals(
@@ -74,7 +74,7 @@ class DeleteCommandTest {
         TestUi ui = new TestUi();
 
         DeleteCommand command = new DeleteCommand("Pull Up");
-        command.execute(storage, workouts, ui);
+        command.execute(storage, workouts, ui, profile);
 
         assertEquals(1, workouts.getSize());
         assertEquals("Workout not found: Pull Up", ui.lastOutput);
@@ -88,7 +88,7 @@ class DeleteCommandTest {
         TestUi ui = new TestUi();
 
         DeleteCommand command = new DeleteCommand("0");
-        command.execute(storage, workouts, ui);
+        command.execute(storage, workouts, ui, profile);
 
         assertEquals(1, workouts.getSize());
         assertEquals("Workout not found: 0", ui.lastOutput);

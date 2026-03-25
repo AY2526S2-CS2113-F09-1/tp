@@ -1,12 +1,6 @@
 package fitlogger.parser;
 
-import fitlogger.command.AddWorkoutCommand;
-import fitlogger.command.Command;
-import fitlogger.command.DeleteCommand;
-import fitlogger.command.EditCommand;
-import fitlogger.command.ExitCommand;
-import fitlogger.command.HelpCommand;
-import fitlogger.command.ViewHistoryCommand;
+import fitlogger.command.*;
 import fitlogger.exception.FitLoggerException;
 import fitlogger.workout.RunWorkout;
 import fitlogger.workout.StrengthWorkout;
@@ -34,6 +28,9 @@ public class Parser {
 
         case "exit":
             return new ExitCommand();
+
+        case "profile":
+            return parseProfile(arguments);
 
         case "add-run":
             return parseAddRun(arguments, workouts);
@@ -219,6 +216,47 @@ public class Parser {
         }
 
         return new EditCommand(index, fieldName, newValue);
+    }
+
+    private static Command parseProfile(String arguments) throws FitLoggerException {
+        if (arguments.isBlank()) {
+            throw new FitLoggerException(
+                    "Missing arguments for viewing/setting up profile.\n"
+                            + "Usage: profile view OR profile set <field> <value>");
+        }
+        String[] info = splitInput(arguments, " ", 3);
+
+        try {
+            switch (info[0]) {
+            case "view":
+                //ignores all entries after it
+                return new ViewProfileCommand();
+            case "set":
+                if (info.length < 2) {
+                    throw new FitLoggerException("Field not provided. \n"
+                            + "Available fields: name / height / weight");
+                }
+                switch (info[1]) {
+                case "name":
+                    return new UpdateProfileCommand(info[2], -1, -1);
+                case "height":
+                    return new UpdateProfileCommand(null, Float.parseFloat(info[2]), -1);
+                case "weight":
+                    return new UpdateProfileCommand(null, -1, Float.parseFloat(info[2]));
+                default:
+                    throw new FitLoggerException("Invalid field provided. \n"
+                            + "Available fields: name / height / weight");
+                }
+            default:
+                throw new FitLoggerException("Invalid profile action. \n"
+                        + "Usage: profile view OR profile set <field> <value>");
+            }
+        } catch (IndexOutOfBoundsException e) {
+            throw new FitLoggerException("No value provided. \n"
+                    + "Please provide a value to be updated.");
+        } catch (NumberFormatException e) {
+            throw new FitLoggerException("Please provide a valid number for height/weight");
+        }
     }
 
     /**

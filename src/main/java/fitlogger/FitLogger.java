@@ -3,6 +3,7 @@ package fitlogger;
 import fitlogger.command.Command;
 import fitlogger.exception.FitLoggerException;
 import fitlogger.parser.Parser;
+import fitlogger.profile.UserProfile;
 import fitlogger.storage.Storage;
 import fitlogger.ui.Ui;
 import fitlogger.workoutlist.WorkoutList;
@@ -11,11 +12,13 @@ public class FitLogger {
     private Ui ui;
     private Storage storage;
     private WorkoutList workouts;
+    private UserProfile profile;
 
     public FitLogger() {
         ui = new Ui();
         storage = new Storage();
         workouts = new WorkoutList();
+        profile = new UserProfile();
         storage.loadData().forEach(workouts::addWorkout);
     }
 
@@ -29,7 +32,7 @@ public class FitLogger {
                     continue;
                 }
                 Command c = Parser.parse(command, workouts, storage);
-                c.execute(storage, workouts, ui);
+                c.execute(storage, workouts, ui, profile);
                 isExit = c.isExit();
             } catch (FitLoggerException e) {
                 ui.showError(e.getMessage());

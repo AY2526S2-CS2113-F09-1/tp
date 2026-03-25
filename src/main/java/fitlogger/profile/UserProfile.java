@@ -1,17 +1,14 @@
 package fitlogger.profile;
 
 public class UserProfile {
-    private String name = null;
-    private float weight = -1;
-    private float height = -1;
+    private String name;
+    private float weight;
+    private float height;
 
-    public UserProfile(String name, float weight, float height) {
-        assert weight >= 0;
-        assert height >= 0;
-        assert !name.isBlank();
-        this.name = name;
-        this.weight = weight;
-        this.height = height;
+    public UserProfile() {
+        name = null;
+        weight = -1;
+        height = -1;
     }
 
     public String getName() {

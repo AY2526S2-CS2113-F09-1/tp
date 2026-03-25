@@ -1,5 +1,6 @@
 package fitlogger.command;
 
+import fitlogger.profile.UserProfile;
 import fitlogger.storage.Storage;
 import fitlogger.ui.Ui;
 import fitlogger.workout.Workout;
@@ -34,10 +35,11 @@ public class DeleteCommand extends Command {
      * removed from the list; otherwise, a not-found message is shown.
      * </p>
      *
-     * @param ui UI component used to display command results.
+     * @param ui      UI component used to display command results.
+     * @param profile
      */
     @Override
-    public void execute(Storage storage, WorkoutList workouts, Ui ui) {
+    public void execute(Storage storage, WorkoutList workouts, Ui ui, UserProfile profile) {
         if (workoutName == null || workoutName.isBlank()) {
             ui.showMessage("Please specify a workout to delete. "
                     + "Usage: delete <WORKOUT_NAME> or delete <index>");
