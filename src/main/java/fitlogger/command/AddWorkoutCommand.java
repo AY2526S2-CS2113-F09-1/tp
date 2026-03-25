@@ -1,5 +1,6 @@
 package fitlogger.command;
 
+import fitlogger.profile.UserProfile;
 import fitlogger.storage.Storage;
 import fitlogger.ui.Ui;
 import fitlogger.workout.Workout;
@@ -13,7 +14,7 @@ public class AddWorkoutCommand extends Command {
     }
 
     @Override
-    public void execute(Storage storage, WorkoutList workouts, Ui ui) {
+    public void execute(Storage storage, WorkoutList workouts, Ui ui, UserProfile profile) {
         workouts.addWorkout(workoutToAdd);
 
         ui.showMessage("Got it. I've added this workout:");

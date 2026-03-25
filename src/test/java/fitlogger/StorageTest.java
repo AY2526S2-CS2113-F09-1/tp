@@ -1,6 +1,7 @@
 package fitlogger;
 
 import fitlogger.exception.FitLoggerException;
+import fitlogger.profile.UserProfile;
 import fitlogger.storage.Storage;
 import fitlogger.workout.RunWorkout;
 import org.junit.jupiter.api.AfterEach;
@@ -31,7 +32,6 @@ class StorageTest {
 
     @AfterEach
     void tearDown() {
-        // Clean up the test file after each test
         File file = new File(FILE_PATH);
         if (file.exists()) {
             file.delete();
@@ -39,49 +39,54 @@ class StorageTest {
     }
 
     @Test
-    void saveData_emptyList_createsEmptyFile() throws IOException {
+    void saveData_emptyList_createsFileWithOnlyProfileLine() throws IOException {
         List<Workout> emptyList = new ArrayList<>();
+        UserProfile profile = new UserProfile();
 
-        storage.saveData(emptyList);
+        storage.saveData(emptyList, profile);
 
         File file = new File(FILE_PATH);
-        assertTrue(file.exists(), "File should be created even for empty FitLogger.command.workout list");
-        assertEquals(0, file.length(), "File should be empty when no workouts saved");
+        assertTrue(file.exists(), "File should be created even for empty workout list");
+        List<String> lines = Files.readAllLines(file.toPath());
+        assertEquals(1, lines.size(), "File should contain only the profile line");
+        assertTrue(lines.get(0).startsWith("name: "), "First line should be the profile entry");
     }
 
     @Test
-    void saveData_singleRunWorkoutWorkout_writesCorrectFormat() throws IOException, FitLoggerException {
+    void saveData_singleRunWorkout_writesProfileOnLine1AndWorkoutOnLine2()
+            throws IOException, FitLoggerException {
         List<Workout> workouts = new ArrayList<>();
-        workouts.add(new RunWorkout("Morning run", LocalDate.of(2024, 3, 15),
-                5.0, 1.0));
+        workouts.add(new RunWorkout("Morning run", LocalDate.of(2024, 3, 15), 5.0, 1.0));
 
-        storage.saveData(workouts);
-
-        List<String> lines = Files.readAllLines(new File(FILE_PATH).toPath());
-        assertEquals(1, lines.size());
-        assertEquals("R | Morning run | 2024-03-15 | 5.0 | 1.0", lines.get(0));
-    }
-
-    @Test
-    void saveData_multipleWorkouts_writesAllLines() throws IOException, FitLoggerException {
-        List<Workout> workouts = new ArrayList<>();
-        workouts.add(new RunWorkout("Easy jog", LocalDate.of(2024, 3, 10),
-                3.0, 1.0));
-        workouts.add(new RunWorkout("Long run", LocalDate.of(2024, 3, 12),
-                10.5, 1.0));
-
-        storage.saveData(workouts);
+        UserProfile profile = new UserProfile();
+        storage.saveData(workouts, profile);
 
         List<String> lines = Files.readAllLines(new File(FILE_PATH).toPath());
         assertEquals(2, lines.size());
-        assertEquals("R | Easy jog | 2024-03-10 | 3.0 | 1.0", lines.get(0));
-        assertEquals("R | Long run | 2024-03-12 | 10.5 | 1.0", lines.get(1));
+        assertTrue(lines.get(0).startsWith("name: "), "Line 1 should be the profile entry");
+        assertEquals("R | Morning run | 2024-03-15 | 5.0 | 1.0", lines.get(1));
+    }
+
+    @Test
+    void saveData_multipleWorkouts_writesProfileThenAllWorkoutLines()
+            throws IOException, FitLoggerException {
+        List<Workout> workouts = new ArrayList<>();
+        workouts.add(new RunWorkout("Easy jog", LocalDate.of(2024, 3, 10), 3.0, 1.0));
+        workouts.add(new RunWorkout("Long run", LocalDate.of(2024, 3, 12), 10.5, 1.0));
+
+        UserProfile profile = new UserProfile();
+        storage.saveData(workouts, profile);
+
+        List<String> lines = Files.readAllLines(new File(FILE_PATH).toPath());
+        assertEquals(3, lines.size());
+        assertTrue(lines.get(0).startsWith("name: "), "Line 1 should be the profile entry");
+        assertEquals("R | Easy jog | 2024-03-10 | 3.0 | 1.0", lines.get(1));
+        assertEquals("R | Long run | 2024-03-12 | 10.5 | 1.0", lines.get(2));
     }
 
     @Test
     void saveData_createsDataDirectory_ifNotExists() throws FitLoggerException {
         File dir = new File("data");
-        // Remove the directory first to simulate a fresh environment
         if (dir.exists()) {
             new File(FILE_PATH).delete();
             dir.delete();
@@ -90,7 +95,8 @@ class StorageTest {
         List<Workout> workouts = new ArrayList<>();
         workouts.add(new RunWorkout("Test run", LocalDate.now(), 1.0, 1.0));
 
-        storage.saveData(workouts);
+        UserProfile profile = new UserProfile();
+        storage.saveData(workouts, profile);
 
         assertTrue(dir.exists(), "data/ directory should be created automatically");
         assertTrue(new File(FILE_PATH).exists(), "fitlogger.txt should be created");

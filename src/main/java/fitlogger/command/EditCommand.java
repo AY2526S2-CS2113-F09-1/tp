@@ -2,6 +2,7 @@ package fitlogger.command;
 
 import fitlogger.exception.FitLoggerException;
 import fitlogger.parser.Parser;
+import fitlogger.profile.UserProfile;
 import fitlogger.storage.Storage;
 import fitlogger.ui.Ui;
 import fitlogger.workout.RunWorkout;
@@ -36,12 +37,13 @@ public class EditCommand extends Command {
     /**
      * Executes the edit operation and reports success or validation errors.
      *
-    * @param storage Storage dependency (unused by this command).
-    * @param workouts Workout list containing workouts to edit.
-    * @param ui UI used to display command result messages.
+     * @param storage  Storage dependency (unused by this command).
+     * @param workouts Workout list containing workouts to edit.
+     * @param ui       UI used to display command result messages.
+     * @param profile
      */
     @Override
-    public void execute(Storage storage, WorkoutList workouts, Ui ui) {
+    public void execute(Storage storage, WorkoutList workouts, Ui ui, UserProfile profile) {
         int zeroBasedIndex = oneBasedIndex - 1;
         if (zeroBasedIndex < 0 || zeroBasedIndex >= workouts.getSize()) {
             ui.showMessage("Invalid workout index: " + oneBasedIndex);

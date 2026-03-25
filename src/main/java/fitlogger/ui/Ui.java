@@ -50,6 +50,9 @@ public class Ui {
     public void showHelpMenu() {
         String helpMessage = "Command Guide:\n"
                 + "    help                                       List available commands\n"
+                + "    profile view                               View your profile\n"
+                + "    profile set <field> <value>                Update your profile. "
+                + "Available fields: name/weight/height \n"
                 + "    add-run <n> d/<dist> t/<mins>              Log a run\n"
                 + "    add-lift <n> w/<kg> s/<sets> r/<reps>      Log a lift workout\n"
                 + "    edit <index> <field>/<value>               "

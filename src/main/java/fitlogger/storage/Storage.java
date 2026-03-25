@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Scanner;
 
 import fitlogger.exception.FitLoggerException;
+import fitlogger.parser.Parser;
+import fitlogger.profile.UserProfile;
 import fitlogger.workout.RunWorkout;
 import fitlogger.workout.StrengthWorkout;
 import fitlogger.workout.Workout;
@@ -58,7 +60,7 @@ public class Storage {
      *
      * @param workouts The list of {@link Workout} objects to persist.
      */
-    public void saveData(List<Workout> workouts) {
+    public void saveData(List<Workout> workouts, UserProfile profile) {
         assert workouts != null : "Workout list passed to saveData() must not be null";
 
         File file = new File(FILE_PATH);
@@ -70,6 +72,9 @@ public class Storage {
         }
 
         try (FileWriter writer = new FileWriter(file)) {
+            writer.write(profile.toFileFormat());
+            writer.write(System.lineSeparator());
+
             for (Workout workout : workouts) {
                 writer.write(workout.toFileFormat());
                 writer.write(System.lineSeparator());
@@ -90,7 +95,7 @@ public class Storage {
      * @return A {@link List} of {@link Workout} objects read from disk,
      *         or an empty list if the file does not exist or cannot be read.
      */
-    public List<Workout> loadData() {
+    public List<Workout> loadData(UserProfile profile) {
         List<Workout> workouts = new ArrayList<>();
         File file = new File(FILE_PATH);
 
@@ -111,9 +116,13 @@ public class Storage {
                 }
 
                 try {
-                    Workout workout = parseLine(line);
-                    if (workout != null) {
-                        workouts.add(workout);
+                    if (lineNumber == 1) {
+                        parseProfile(line, profile);
+                    } else {
+                        Workout workout = parseLine(line);
+                        if (workout != null) {
+                            workouts.add(workout);
+                        }
                     }
                 } catch (Exception e) {
                     System.out.println("Warning: Skipping corrupted line " + lineNumber
@@ -128,6 +137,19 @@ public class Storage {
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
+    private void parseProfile(String line, UserProfile profile) {
+        //errors handled outside
+        String[] weightData = Parser.splitInput(line, "weight: ", 2);
+        String[] heightData = Parser.splitInput(weightData[0], "height: ", 2);
+        String[] nameData = Parser.splitInput(heightData[0], "name: ", 2);
+
+        //no errors in storage
+        if (!nameData[1].trim().equals("null")) {
+            profile.setName(nameData[1].trim());
+        }
+        profile.setHeight(Double.parseDouble(heightData[1].trim()));
+        profile.setWeight(Double.parseDouble(weightData[1].trim()));
+    }
 
     /**
      * Parses a single line from the save file into a {@link Workout} object.

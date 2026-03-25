@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.LocalDate;
 
 import fitlogger.exception.FitLoggerException;
+import fitlogger.profile.UserProfile;
 import fitlogger.workout.RunWorkout;
 import org.junit.jupiter.api.Test;
 
@@ -23,9 +24,10 @@ class DeleteCommandTest {
         workouts.addWorkout(new RunWorkout("Squat", LocalDate.of(2026, 3, 15), 1.0, 1.0));
         workouts.addWorkout(new RunWorkout("Bench Press", LocalDate.of(2026, 3, 15), 1.0, 1.0));
         TestUi ui = new TestUi();
+        UserProfile profile = new UserProfile();
 
         DeleteCommand command = new DeleteCommand("squat");
-        command.execute(storage, workouts, ui);
+        command.execute(storage, workouts, ui, profile);
 
         assertEquals(1, workouts.getSize());
         assertFalse(workouts.getWorkoutAtIndex(0).getDescription().equalsIgnoreCase("Squat"));
@@ -40,9 +42,10 @@ class DeleteCommandTest {
         workouts.addWorkout(new RunWorkout("Bench Press", LocalDate.of(2026, 3, 15), 1.0, 1.0));
         workouts.addWorkout(new RunWorkout("Deadlift", LocalDate.of(2026, 3, 15), 1.0, 1.0));
         TestUi ui = new TestUi();
+        UserProfile profile = new UserProfile();
 
         DeleteCommand command = new DeleteCommand("3");
-        command.execute(storage, workouts, ui);
+        command.execute(storage, workouts, ui, profile);
 
         assertEquals(2, workouts.getSize());
         assertFalse(workouts.getWorkoutAtIndex(0).getDescription().equalsIgnoreCase("Deadlift"));
@@ -56,9 +59,10 @@ class DeleteCommandTest {
         WorkoutList workouts = new WorkoutList();
         workouts.addWorkout(new RunWorkout("Deadlift", LocalDate.of(2026, 3, 15), 1.0, 1.0));
         TestUi ui = new TestUi();
+        UserProfile profile = new UserProfile();
 
         DeleteCommand command = new DeleteCommand(" ");
-        command.execute(storage, workouts, ui);
+        command.execute(storage, workouts, ui, profile);
 
         assertTrue(workouts.getWorkoutAtIndex(0).getDescription().equals("Deadlift"));
         assertEquals(
@@ -72,9 +76,10 @@ class DeleteCommandTest {
         WorkoutList workouts = new WorkoutList();
         workouts.addWorkout(new RunWorkout("Deadlift", LocalDate.of(2026, 3, 15), 1.0, 1.0));
         TestUi ui = new TestUi();
+        UserProfile profile = new UserProfile();
 
         DeleteCommand command = new DeleteCommand("Pull Up");
-        command.execute(storage, workouts, ui);
+        command.execute(storage, workouts, ui, profile);
 
         assertEquals(1, workouts.getSize());
         assertEquals("Workout not found: Pull Up", ui.lastOutput);
@@ -86,9 +91,10 @@ class DeleteCommandTest {
         WorkoutList workouts = new WorkoutList();
         workouts.addWorkout(new RunWorkout("Deadlift", LocalDate.of(2026, 3, 15), 1.0, 1.0));
         TestUi ui = new TestUi();
+        UserProfile profile = new UserProfile();
 
         DeleteCommand command = new DeleteCommand("0");
-        command.execute(storage, workouts, ui);
+        command.execute(storage, workouts, ui, profile);
 
         assertEquals(1, workouts.getSize());
         assertEquals("Workout not found: 0", ui.lastOutput);

@@ -6,7 +6,9 @@ import fitlogger.command.DeleteCommand;
 import fitlogger.command.EditCommand;
 import fitlogger.command.ExitCommand;
 import fitlogger.command.HelpCommand;
+import fitlogger.command.UpdateProfileCommand;
 import fitlogger.command.ViewHistoryCommand;
+import fitlogger.command.ViewProfileCommand;
 import fitlogger.exception.FitLoggerException;
 import fitlogger.workout.RunWorkout;
 import fitlogger.workout.StrengthWorkout;
@@ -31,6 +33,8 @@ public class Parser {
         case "exit":
             return new ExitCommand();
 
+        case "profile":
+            return parseProfile(arguments);
         case "edit":
             return parseEdit(arguments, workouts);
 
@@ -215,6 +219,66 @@ public class Parser {
         }
 
         return new EditCommand(index, fieldName, newValue);
+    }
+
+    private static Command parseProfile(String arguments) throws FitLoggerException {
+        if (arguments.isBlank()) {
+            throw new FitLoggerException(
+                    "Missing arguments for viewing/setting up profile.\n"
+                            + "Usage: profile view OR profile set <field> <value>");
+        }
+        String[] info = splitInput(arguments, " ", 3);
+
+        try {
+            switch (info[0]) {
+            case "view":
+                //ignores all entries after it
+                return new ViewProfileCommand();
+            case "set":
+                if (info.length < 2) {
+                    throw new FitLoggerException("Field not provided. \n"
+                            + "Available fields: name / height / weight");
+                }
+                assert !info[1].isEmpty();
+                assert !info[1].isBlank();
+
+                double updatedHeightOrWeight = -1;
+
+                switch (info[1]) {
+                case "name":
+                    return new UpdateProfileCommand(info[2], -1, -1);
+                case "height":
+                    updatedHeightOrWeight = updateHeightOrWeight(info[2], 0.3, 3);
+                    return new UpdateProfileCommand(null, updatedHeightOrWeight, -1);
+                case "weight":
+                    updatedHeightOrWeight = updateHeightOrWeight(info[2], 10, 500);
+                    return new UpdateProfileCommand(null, -1, updatedHeightOrWeight);
+                default:
+                    throw new FitLoggerException("Invalid field provided. \n"
+                            + "Available fields: name / height / weight");
+                }
+            default:
+                throw new FitLoggerException("Invalid profile action. \n"
+                        + "Usage: profile view OR profile set <field> <value>");
+            }
+        } catch (IndexOutOfBoundsException e) {
+            throw new FitLoggerException("No value provided. \n"
+                    + "Please provide a value to be updated.");
+        }
+    }
+
+    private static double updateHeightOrWeight(String value, double lowerBound, double upperBound)
+            throws FitLoggerException {
+        try {
+            double newValue = Float.parseFloat(value);
+            if (newValue < lowerBound || newValue > upperBound) {
+                throw new FitLoggerException("Your Height/Weight is too low/high.\n" +
+                        "Please ensure your values are correctly inputted");
+            }
+            return newValue;
+        } catch (NumberFormatException e) {
+            throw new FitLoggerException("Please provide a valid number for height/weight");
+        }
     }
 
     /**

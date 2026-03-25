@@ -3,6 +3,7 @@ package fitlogger;
 import fitlogger.command.Command;
 import fitlogger.exception.FitLoggerException;
 import fitlogger.parser.Parser;
+import fitlogger.profile.UserProfile;
 import fitlogger.storage.Storage;
 import fitlogger.ui.Ui;
 import fitlogger.workoutlist.WorkoutList;
@@ -11,12 +12,14 @@ public class FitLogger {
     private Ui ui;
     private Storage storage;
     private WorkoutList workouts;
+    private UserProfile profile;
 
     public FitLogger() {
         ui = new Ui();
         storage = new Storage();
         workouts = new WorkoutList();
-        storage.loadData().forEach(workouts::addWorkout);
+        profile = new UserProfile();
+        storage.loadData(profile).forEach(workouts::addWorkout);
     }
 
     public void run() {
