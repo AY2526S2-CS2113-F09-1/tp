@@ -7,6 +7,7 @@ import fitlogger.command.EditCommand;
 import fitlogger.command.ExitCommand;
 import fitlogger.command.HelpCommand;
 import fitlogger.command.UpdateProfileCommand;
+import fitlogger.command.ViewDatabaseCommand;
 import fitlogger.command.ViewHistoryCommand;
 import fitlogger.command.ViewProfileCommand;
 import fitlogger.exception.FitLoggerException;
@@ -14,12 +15,13 @@ import fitlogger.workout.RunWorkout;
 import fitlogger.workout.StrengthWorkout;
 import fitlogger.workout.Workout;
 import fitlogger.workoutlist.WorkoutList;
+import fitlogger.exercisedictionary.ExerciseDictionary;
 
 import java.time.LocalDate;
 
 public class Parser {
 
-    public static Command parse(String fullCommand, WorkoutList workouts)
+    public static Command parse(String fullCommand, WorkoutList workouts, ExerciseDictionary dictionary)
             throws FitLoggerException {
         assert fullCommand != null : "Parser.parse was called with a null string!";
         String[] parts = splitInput(fullCommand, " ", 2);
@@ -35,14 +37,15 @@ public class Parser {
 
         case "profile":
             return parseProfile(arguments);
+
         case "edit":
             return parseEdit(arguments, workouts);
 
         case "add-run":
-            return parseAddRun(arguments, workouts);
+            return parseAddRun(arguments, workouts, dictionary);
 
         case "add-lift":
-            return parseAddLift(arguments, workouts);
+            return parseAddLift(arguments, workouts, dictionary);
 
         case "list":
             // fallthrough intentional — same behaviour as history
@@ -51,6 +54,9 @@ public class Parser {
 
         case "help":
             return new HelpCommand();
+
+        case "view-database":
+            return new ViewDatabaseCommand(dictionary);
 
         default:
             throw new FitLoggerException(
@@ -70,21 +76,35 @@ public class Parser {
      * @throws FitLoggerException if arguments are missing, malformed, or contain illegal storage
      *         characters.
      */
-    private static Command parseAddRun(String arguments, WorkoutList workouts)
+    private static Command parseAddRun(String arguments, WorkoutList workouts, ExerciseDictionary dictionary)
             throws FitLoggerException {
         if (arguments.isBlank()) {
             throw new FitLoggerException("Missing arguments for add-run.\n"
-                    + "Usage: add-run <name> d/<distance> t/<durationMinutes>");
+                    + "Usage: add-run <name_or_id> d/<distance> t/<durationMinutes>");
         }
 
         String[] runInfo = splitInput(arguments, "d/|t/", 3);
 
         if (runInfo.length < 3) {
             throw new FitLoggerException("Invalid format for add-run.\n"
-                    + "Usage: add-run <name> d/<distance> t/<durationMinutes>");
+                    + "Usage: add-run <name_or_id> d/<distance> t/<durationMinutes>");
         }
 
         String name = runInfo[0].trim();
+        try {
+            int shortcutId = Integer.parseInt(name);
+            String dictionaryName = dictionary.getRunName(shortcutId);
+
+            if (dictionaryName == null) {
+                throw new FitLoggerException("Shortcut ID [" + shortcutId + "] does not exist. "
+                        + "Type 'view-database' to see available shortcuts.");
+            }
+            name = dictionaryName;
+
+        } catch (NumberFormatException e) {
+            // normal string like "Easy Run"
+        }
+
         validateNoStorageDelimiters(name, "Run name");
 
         double distance;
@@ -124,21 +144,35 @@ public class Parser {
      * @throws FitLoggerException if arguments are missing, malformed, or contain illegal storage
      *         characters.
      */
-    private static Command parseAddLift(String arguments, WorkoutList workouts)
+    private static Command parseAddLift(String arguments, WorkoutList workouts, ExerciseDictionary dictionary)
             throws FitLoggerException {
         if (arguments.isBlank()) {
             throw new FitLoggerException("Missing arguments for add-lift.\n"
-                    + "Usage: add-lift <name> w/<weightKg> s/<sets> r/<reps>");
+                    + "Usage: add-lift <name_or_id> w/<weightKg> s/<sets> r/<reps>");
         }
 
         String[] info = splitInput(arguments, "w/|s/|r/", 4);
 
         if (info.length < 4) {
             throw new FitLoggerException("Invalid format for add-lift.\n"
-                    + "Usage: add-lift <name> w/<weightKg> s/<sets> r/<reps>");
+                    + "Usage: add-lift <name_or_id> w/<weightKg> s/<sets> r/<reps>");
         }
 
         String name = info[0].trim();
+        try {
+            int shortcutId = Integer.parseInt(name);
+            String dictionaryName = dictionary.getLiftName(shortcutId);
+
+            if (dictionaryName == null) {
+                throw new FitLoggerException("Shortcut ID [" + shortcutId + "] does not exist in the database. "
+                        + "Type 'view-database' to see available shortcuts.");
+            }
+            name = dictionaryName;
+
+        } catch (NumberFormatException e) {
+            // normal string like "Bench Press".
+        }
+
         validateNoStorageDelimiters(name, "Exercise name");
 
         double weight;

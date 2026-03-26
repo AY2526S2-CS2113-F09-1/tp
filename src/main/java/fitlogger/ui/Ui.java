@@ -1,6 +1,7 @@
 package fitlogger.ui;
 
 import fitlogger.workout.Workout;
+import fitlogger.exercisedictionary.ExerciseDictionary;
 
 import java.util.Scanner;
 
@@ -57,6 +58,7 @@ public class Ui {
                 + "    add-lift <n> w/<kg> s/<sets> r/<reps>      Log a lift workout\n"
                 + "    edit <index> <field>/<value>               "
                 + "Edit field: name/description/weight/sets/reps/distance/duration\n"
+                + "    view-database                              View exercise shortcuts and their IDs\n"
                 + "    history                                    View all logged workouts\n"
                 + "    delete <index>                             Delete workout by number\n"
                 + "    delete <name>                              Delete workout by name\n"
@@ -75,4 +77,16 @@ public class Ui {
     public void printWorkout(Workout workout) {
         showMessage(workout.toString());
     }
-}
+
+    public void showExerciseDatabase(ExerciseDictionary dictionary) {
+        showMessage("Strength Shortcuts:");
+        for (java.util.Map.Entry<Integer, String> entry : dictionary.getLiftShortcuts().entrySet()) {
+            showMessage("  [" + entry.getKey() + "] -> " + entry.getValue());
+        }
+        showMessage("");
+        showMessage("Run Shortcuts:");
+        for (java.util.Map.Entry<Integer, String> entry : dictionary.getRunShortcuts().entrySet()) {
+            showMessage("  [" + entry.getKey() + "] -> " + entry.getValue());
+        }
+        showLine();
+    }}

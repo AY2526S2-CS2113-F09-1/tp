@@ -7,18 +7,22 @@ import fitlogger.profile.UserProfile;
 import fitlogger.storage.Storage;
 import fitlogger.ui.Ui;
 import fitlogger.workoutlist.WorkoutList;
+import fitlogger.exercisedictionary.ExerciseDictionary;
 
 public class FitLogger {
     private Ui ui;
     private Storage storage;
     private WorkoutList workouts;
     private UserProfile profile;
+    private ExerciseDictionary dictionary;
 
     public FitLogger() {
         ui = new Ui();
         storage = new Storage();
         workouts = new WorkoutList();
         profile = new UserProfile();
+        dictionary = new ExerciseDictionary();
+
         storage.loadData(profile).forEach(workouts::addWorkout);
     }
 
@@ -31,7 +35,7 @@ public class FitLogger {
                 if (command.isBlank()) {
                     continue;
                 }
-                Command c = Parser.parse(command, workouts);
+                Command c = Parser.parse(command, workouts, dictionary);
                 c.execute(storage, workouts, ui, profile);
                 isExit = c.isExit();
             } catch (FitLoggerException e) {

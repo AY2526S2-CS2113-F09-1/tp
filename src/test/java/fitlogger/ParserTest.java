@@ -2,6 +2,8 @@ package fitlogger;
 
 import fitlogger.command.AddWorkoutCommand;
 import fitlogger.command.Command;
+import fitlogger.command.ViewDatabaseCommand;
+import fitlogger.exercisedictionary.ExerciseDictionary;
 import fitlogger.exception.FitLoggerException;
 import fitlogger.parser.Parser;
 import fitlogger.profile.UserProfile;
@@ -24,6 +26,7 @@ class ParserTest {
     private Storage storage;
     private TestUi ui;
     private UserProfile profile;
+    private ExerciseDictionary dictionary;
 
     @BeforeEach
     void setUp() {
@@ -37,7 +40,7 @@ class ParserTest {
 
     @Test
     void addLift_validInput_addsWorkout() throws FitLoggerException {
-        Command cmd = Parser.parse("add-lift Bench Press w/80.5 s/3 r/8", workouts);
+        Command cmd = Parser.parse("add-lift Bench Press w/80.5 s/3 r/8", workouts, dictionary);
 
         assertTrue(cmd instanceof AddWorkoutCommand, "Expected AddWorkoutCommand for add-lift");
 
@@ -56,7 +59,7 @@ class ParserTest {
     @Test
     void addLift_zeroWeight_isAllowed() throws FitLoggerException {
         // Bodyweight exercises log w/0
-        Command cmd = Parser.parse("add-lift Pull-up w/0 s/3 r/10", workouts);
+        Command cmd = Parser.parse("add-lift Pull-up w/0 s/3 r/10", workouts, dictionary);
         cmd.execute(storage, workouts, ui, profile);
         StrengthWorkout logged = (StrengthWorkout) workouts.getWorkoutAtIndex(0);
         assertEquals(0.0, logged.getWeight(), 0.001);
@@ -67,7 +70,7 @@ class ParserTest {
     @Test
     void addLift_missingArgs_throwsException() {
         FitLoggerException ex =
-                assertThrows(FitLoggerException.class, () -> Parser.parse("add-lift", workouts));
+                assertThrows(FitLoggerException.class, () -> Parser.parse("add-lift", workouts, dictionary));
         assertTrue(ex.getMessage().toLowerCase().contains("missing"),
                 "Error should mention missing arguments");
     }
@@ -75,7 +78,7 @@ class ParserTest {
     @Test
     void addLift_missingReps_throwsException() {
         FitLoggerException ex = assertThrows(FitLoggerException.class,
-                () -> Parser.parse("add-lift Squat w/100 s/5", workouts));
+                () -> Parser.parse("add-lift Squat w/100 s/5", workouts, dictionary));
         assertTrue(
                 ex.getMessage().toLowerCase().contains("invalid format")
                         || ex.getMessage().toLowerCase().contains("usage"),
@@ -85,19 +88,19 @@ class ParserTest {
     @Test
     void addLift_nonNumericWeight_throwsException() {
         assertThrows(FitLoggerException.class,
-                () -> Parser.parse("add-lift Squat w/heavy s/3 r/5", workouts));
+                () -> Parser.parse("add-lift Squat w/heavy s/3 r/5", workouts, dictionary));
     }
 
     @Test
     void addLift_nonIntegerSets_throwsException() {
         assertThrows(FitLoggerException.class,
-                () -> Parser.parse("add-lift Squat w/100 s/3.5 r/5", workouts));
+                () -> Parser.parse("add-lift Squat w/100 s/3.5 r/5", workouts, dictionary));
     }
 
     @Test
     void addLift_negativeWeight_throwsException() {
         FitLoggerException ex = assertThrows(FitLoggerException.class,
-                () -> Parser.parse("add-lift Squat w/-10 s/3 r/5", workouts));
+                () -> Parser.parse("add-lift Squat w/-10 s/3 r/5", workouts, dictionary));
         assertTrue(ex.getMessage().toLowerCase().contains("negative"),
                 "Error should mention negative weight");
     }
@@ -105,14 +108,14 @@ class ParserTest {
     @Test
     void addLift_zeroSets_throwsException() {
         FitLoggerException ex = assertThrows(FitLoggerException.class,
-                () -> Parser.parse("add-lift Squat w/100 s/0 r/5", workouts));
+                () -> Parser.parse("add-lift Squat w/100 s/0 r/5", workouts, dictionary));
         assertTrue(ex.getMessage().toLowerCase().contains("sets"), "Error should mention sets");
     }
 
     @Test
     void addLift_zeroReps_throwsException() {
         FitLoggerException ex = assertThrows(FitLoggerException.class,
-                () -> Parser.parse("add-lift Squat w/100 s/3 r/0", workouts));
+                () -> Parser.parse("add-lift Squat w/100 s/3 r/0", workouts, dictionary));
         assertTrue(ex.getMessage().toLowerCase().contains("reps"), "Error should mention reps");
     }
 
@@ -121,14 +124,14 @@ class ParserTest {
     @Test
     void addLift_pipeInName_throwsException() {
         FitLoggerException ex = assertThrows(FitLoggerException.class,
-                () -> Parser.parse("add-lift Bad|Name w/80 s/3 r/8", workouts));
+                () -> Parser.parse("add-lift Bad|Name w/80 s/3 r/8", workouts, dictionary));
         assertTrue(ex.getMessage().contains("|"), "Error should call out the pipe character");
     }
 
     @Test
     void addLift_slashInName_throwsException() {
         FitLoggerException ex = assertThrows(FitLoggerException.class,
-                () -> Parser.parse("add-lift Bad/Name w/80 s/3 r/8", workouts));
+                () -> Parser.parse("add-lift Bad/Name w/80 s/3 r/8", workouts, dictionary));
         assertTrue(ex.getMessage().contains("/"), "Error should call out the slash character");
     }
 
@@ -137,7 +140,7 @@ class ParserTest {
     @Test
     void addRun_missingArgs_throwsException() {
         FitLoggerException ex =
-                assertThrows(FitLoggerException.class, () -> Parser.parse("add-run", workouts));
+                assertThrows(FitLoggerException.class, () -> Parser.parse("add-run", workouts, dictionary));
         assertTrue(ex.getMessage().toLowerCase().contains("missing"),
                 "Error should mention missing arguments");
     }
@@ -145,25 +148,25 @@ class ParserTest {
     @Test
     void addRun_missingFlag_throwsException() {
         assertThrows(FitLoggerException.class,
-                () -> Parser.parse("add-run Morning Jog d/5.0", workouts));
+                () -> Parser.parse("add-run Morning Jog d/5.0", workouts, dictionary));
     }
 
     @Test
     void addRun_nonNumericDistance_throwsException() {
         assertThrows(FitLoggerException.class,
-                () -> Parser.parse("add-run Morning Jog d/far t/30", workouts));
+                () -> Parser.parse("add-run Morning Jog d/far t/30", workouts, dictionary));
     }
 
     @Test
     void addRun_nonNumericDuration_throwsException() {
         assertThrows(FitLoggerException.class,
-                () -> Parser.parse("add-run Morning Jog d/5.0 t/long", workouts));
+                () -> Parser.parse("add-run Morning Jog d/5.0 t/long", workouts, dictionary));
     }
 
     @Test
     void addRun_negativeDistance_throwsException() {
         FitLoggerException ex = assertThrows(FitLoggerException.class,
-                () -> Parser.parse("add-run Morning Jog d/-5 t/30", workouts));
+                () -> Parser.parse("add-run Morning Jog d/-5 t/30", workouts, dictionary));
         assertTrue(ex.getMessage().toLowerCase().contains("positive"),
                 "Error should mention positive distance");
     }
@@ -171,13 +174,13 @@ class ParserTest {
     @Test
     void addRun_zeroDuration_throwsException() {
         assertThrows(FitLoggerException.class,
-                () -> Parser.parse("add-run Morning Jog d/5.0 t/0", workouts));
+                () -> Parser.parse("add-run Morning Jog d/5.0 t/0", workouts, dictionary));
     }
 
     @Test
     void addRun_pipeInName_throwsException() {
         FitLoggerException ex = assertThrows(FitLoggerException.class,
-                () -> Parser.parse("add-run Bad|Name d/5 t/30", workouts));
+                () -> Parser.parse("add-run Bad|Name d/5 t/30", workouts, dictionary));
         assertTrue(ex.getMessage().contains("|"));
     }
 
@@ -185,7 +188,7 @@ class ParserTest {
 
     @Test
     void addRun_validInput_addsWorkout() throws FitLoggerException {
-        Command cmd = Parser.parse("add-run Morning Jog d/5.0 t/25.5", workouts);
+        Command cmd = Parser.parse("add-run Morning Jog d/5.0 t/25.5", workouts, dictionary);
         cmd.execute(storage, workouts, ui, profile);
 
         assertEquals(1, workouts.getSize());
@@ -197,11 +200,17 @@ class ParserTest {
         assertEquals(25.5, logged.getDurationMinutes(), 0.001);
     }
 
+    @Test
+    void parse_viewDatabase_returnsViewDatabaseCommand() throws FitLoggerException {
+        Command cmd = Parser.parse("view-database", workouts, dictionary);
+        assertTrue(cmd instanceof ViewDatabaseCommand, "Expected ViewDatabaseCommand for view-database");
+    }
+
     // ── unknown command ───────────────────────────────────────────────────────
 
     @Test
     void parse_unknownCommand_throwsFitLoggerException() {
-        assertThrows(FitLoggerException.class, () -> Parser.parse("foobar", workouts));
+        assertThrows(FitLoggerException.class, () -> Parser.parse("foobar", workouts, dictionary));
     }
 
     // ── delimiter validator (unit test for the helper directly) ──────────────
