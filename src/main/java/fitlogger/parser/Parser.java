@@ -10,6 +10,7 @@ import fitlogger.command.HelpCommand;
 import fitlogger.command.UpdateProfileCommand;
 import fitlogger.command.ViewDatabaseCommand;
 import fitlogger.command.ViewHistoryCommand;
+import fitlogger.command.ViewLastLiftCommand;
 import fitlogger.command.ViewProfileCommand;
 import fitlogger.command.ViewShoeMileageCommand;
 import fitlogger.command.AddShortcutCommand;
@@ -66,6 +67,9 @@ public class Parser {
 
         case "add-shortcut":
             return parseAddShortcut(arguments, dictionary);
+            
+        case "lastlift":
+            return new ViewLastLiftCommand(arguments);
 
         default:
             throw new FitLoggerException(
