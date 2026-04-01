@@ -22,6 +22,7 @@ public class FitLogger {
         workouts = new WorkoutList();
         profile = new UserProfile();
         dictionary = new ExerciseDictionary();
+        storage.setDictionary(dictionary);
 
         storage.loadData(profile).forEach(workouts::addWorkout);
     }

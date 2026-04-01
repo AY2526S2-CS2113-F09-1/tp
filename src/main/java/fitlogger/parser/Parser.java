@@ -13,6 +13,7 @@ import fitlogger.command.ViewHistoryCommand;
 import fitlogger.command.ViewLastLiftCommand;
 import fitlogger.command.ViewProfileCommand;
 import fitlogger.command.ViewShoeMileageCommand;
+import fitlogger.command.AddShortcutCommand;
 import fitlogger.exception.FitLoggerException;
 import fitlogger.workout.RunWorkout;
 import fitlogger.workout.StrengthWorkout;
@@ -64,6 +65,9 @@ public class Parser {
         case "view-database":
             return new ViewDatabaseCommand(dictionary);
 
+        case "add-shortcut":
+            return parseAddShortcut(arguments, dictionary);
+            
         case "lastlift":
             return new ViewLastLiftCommand(arguments);
 
@@ -209,6 +213,42 @@ public class Parser {
 
         Workout strength = new StrengthWorkout(name, weight, sets, reps, LocalDate.now());
         return new AddWorkoutCommand(strength);
+    }
+
+    private static Command parseAddShortcut(String arguments, ExerciseDictionary dictionary)
+            throws FitLoggerException {
+        if (arguments.isBlank()) {
+            throw new FitLoggerException("Missing arguments.\n"
+                    + "Usage: add-shortcut <lift/run> <ID> <Exercise Name>");
+        }
+
+        // Split into exactly 3 parts: type, ID, and the rest is the name
+        String[] parts = splitInput(arguments, " ", 3);
+        if (parts.length < 3) {
+            throw new FitLoggerException("Invalid format.\n"
+                    + "Usage: add-shortcut <lift/run> <ID> <Exercise Name>");
+        }
+
+        String type = parts[0].toLowerCase();
+        if (!type.equals("lift") && !type.equals("run")) {
+            throw new FitLoggerException("Shortcut type must be 'lift' or 'run'.");
+        }
+
+        int id;
+        try {
+            id = Integer.parseInt(parts[1].trim());
+        } catch (NumberFormatException e) {
+            throw new FitLoggerException("Shortcut ID must be a number.");
+        }
+
+        if (id <= 0) {
+            throw new FitLoggerException("Shortcut ID must be a positive number.");
+        }
+
+        String name = parts[2].trim();
+        validateNoStorageDelimiters(name, "Shortcut name");
+
+        return new AddShortcutCommand(type, id, name, dictionary);
     }
 
     /**

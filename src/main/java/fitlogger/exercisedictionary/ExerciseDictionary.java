@@ -1,15 +1,15 @@
 package fitlogger.exercisedictionary;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
 
 public class ExerciseDictionary {
-    private final HashMap<Integer, String> liftDictionary;
-    private final HashMap<Integer, String> runDictionary;
+    private final TreeMap<Integer, String> liftDictionary;
+    private final TreeMap<Integer, String> runDictionary;
 
     public ExerciseDictionary() {
-        this.liftDictionary = new HashMap<>();
-        this.runDictionary = new HashMap<>();
+        this.liftDictionary = new TreeMap<>();
+        this.runDictionary = new TreeMap<>();
         loadDefaultExercises();
     }
 
