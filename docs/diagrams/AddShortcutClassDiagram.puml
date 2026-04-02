@@ -20,6 +20,12 @@ class ViewDatabaseCommand {
     + execute(Storage, WorkoutList, Ui, UserProfile): void
 }
 
+class Storage {
+    - dictionary: ExerciseDictionary
+    + setDictionary(ExerciseDictionary): void
+    + saveData(List<Workout>, UserProfile): void
+}
+
 class ExerciseDictionary {
     - liftDictionary: TreeMap<Integer, String>
     - runDictionary: TreeMap<Integer, String>
@@ -27,12 +33,11 @@ class ExerciseDictionary {
     + getRunName(int): String
     + addLiftShortcut(int, String): void
     + addRunShortcut(int, String): void
-    + getLiftShortcuts(): Map<Integer, String>
-    + getRunShortcuts(): Map<Integer, String>
 }
 
 Command <|-- AddShortcutCommand
 Command <|-- ViewDatabaseCommand
 AddShortcutCommand --> ExerciseDictionary : mutates
 ViewDatabaseCommand --> ExerciseDictionary : reads
+Storage --> ExerciseDictionary : persists
 @enduml
