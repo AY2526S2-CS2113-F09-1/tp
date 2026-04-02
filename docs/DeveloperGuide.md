@@ -8,6 +8,30 @@
 
 ## Design & implementation
 
+{Describe the design and implementation of the product. Use UML diagrams and short code snippets where applicable.}
+
+#### Implementation
+
+The parsing logic is centralized in the `Parser#parse()` method. It follows a two-stage process:
+1. **Tokenisation:** The input string is split into a `commandWord` and `arguments` using the `splitInput` helper method.
+2. **Command Dispatch:** A `switch` block routes the `commandWord` to the appropriate command constructor or sub-parser method (e.g., `parseAddRun`).
+
+The following sequence diagram illustrates the internal logic of the `Parser` when a user inputs an `add-run` or `delete` command:
+
+![Parser Sequence Diagram](out/parserdesign/parserdesign.png)
+
+#### Design Considerations
+
+**Aspect: How the Parser is implemented**
+* **Current Implementation:** Static utility class.
+    * **Pros:** Simple to use across the application without maintaining state; no need to instantiate multiple parsers.
+    * **Cons:** Harder to "mock" during unit testing compared to an instance-based approach.
+* **Alternative Considered:** Instance-based Parser with Dependency Injection.
+    * **Reason for Rejection:** Given the current scope of FitLogger, a static parser is more lightweight and sufficient for the required command set.
+
+**Aspect: Data Validation**
+* The parser ensures that no user-inputted text (like workout names) contains reserved characters (`|` or `/`) used by the `Storage` component. This prevents file corruption during save/load operations.
+
 ### Enhancement 1: `EditCommand`
 
 #### Purpose and user value

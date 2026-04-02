@@ -27,58 +27,58 @@ import java.time.format.DateTimeParseException;
 
 public class Parser {
 
-    public static Command parse(String fullCommand, WorkoutList workouts, ExerciseDictionary dictionary)
-            throws FitLoggerException {
+    public static Command parse(String fullCommand, WorkoutList workouts,
+            ExerciseDictionary dictionary) throws FitLoggerException {
         assert fullCommand != null : "Parser.parse was called with a null string!";
         String[] parts = splitInput(fullCommand, " ", 2);
         String commandWord = parts[0].toLowerCase();
         String arguments = (parts.length > 1) ? parts[1].trim() : "";
 
         switch (commandWord) {
-        case "delete":
-            return new DeleteCommand(arguments);
+            case "delete":
+                return new DeleteCommand(arguments);
 
-        case "search-date":
-            return parseSearchDate(arguments);
+            case "search-date":
+                return parseSearchDate(arguments);
 
-        case "exit":
-            return new ExitCommand();
+            case "exit":
+                return new ExitCommand();
 
-        case "profile":
-            return parseProfile(arguments);
+            case "profile":
+                return parseProfile(arguments);
 
-        case "view-total-mileage":
-            return new ViewShoeMileageCommand();
+            case "view-total-mileage":
+                return new ViewShoeMileageCommand();
 
-        case "edit":
-            return parseEdit(arguments, workouts);
+            case "edit":
+                return parseEdit(arguments, workouts);
 
-        case "add-run":
-            return parseAddRun(arguments, workouts, dictionary);
+            case "add-run":
+                return parseAddRun(arguments, workouts, dictionary);
 
-        case "add-lift":
-            return parseAddLift(arguments, workouts, dictionary);
+            case "add-lift":
+                return parseAddLift(arguments, workouts, dictionary);
 
-        case "list":
-            // fallthrough intentional — same behaviour as history
-        case "history":
-            return new ViewHistoryCommand();
+            case "list":
+                // fallthrough intentional — same behaviour as history
+            case "history":
+                return new ViewHistoryCommand();
 
-        case "help":
-            return new HelpCommand();
+            case "help":
+                return new HelpCommand();
 
-        case "view-database":
-            return new ViewDatabaseCommand(dictionary);
+            case "view-database":
+                return new ViewDatabaseCommand(dictionary);
 
-        case "add-shortcut":
-            return parseAddShortcut(arguments, dictionary);
-            
-        case "lastlift":
-            return new ViewLastLiftCommand(arguments);
+            case "add-shortcut":
+                return parseAddShortcut(arguments, dictionary);
 
-        default:
-            throw new FitLoggerException(
-                    "I'm sorry, I don't know what '" + commandWord + "' means.\nSee 'help'");
+            case "lastlift":
+                return new ViewLastLiftCommand(arguments);
+
+            default:
+                throw new FitLoggerException(
+                        "I'm sorry, I don't know what '" + commandWord + "' means.\nSee 'help'");
         }
     }
 
@@ -94,8 +94,8 @@ public class Parser {
      * @throws FitLoggerException if arguments are missing, malformed, or contain illegal storage
      *         characters.
      */
-    private static Command parseAddRun(String arguments, WorkoutList workouts, ExerciseDictionary dictionary)
-            throws FitLoggerException {
+    private static Command parseAddRun(String arguments, WorkoutList workouts,
+            ExerciseDictionary dictionary) throws FitLoggerException {
         if (arguments.isBlank()) {
             throw new FitLoggerException("Missing arguments for add-run.\n"
                     + "Usage: add-run <name_or_id> d/<distanceKm> t/<durationMinutes>");
@@ -128,7 +128,7 @@ public class Parser {
         double distance;
         double durationMinutes;
         try {
-            //check if d/comes before t/
+            // check if d/comes before t/
             String[] checkDataIntegrity = splitInput(arguments.trim(), "d/", 0);
             if (checkDataIntegrity[0].contains("t/")) {
                 throw new FitLoggerException("Invalid format for add-run.\n"
@@ -169,8 +169,8 @@ public class Parser {
      * @throws FitLoggerException if arguments are missing, malformed, or contain illegal storage
      *         characters.
      */
-    private static Command parseAddLift(String arguments, WorkoutList workouts, ExerciseDictionary dictionary)
-            throws FitLoggerException {
+    private static Command parseAddLift(String arguments, WorkoutList workouts,
+            ExerciseDictionary dictionary) throws FitLoggerException {
         if (arguments.isBlank()) {
             throw new FitLoggerException("Missing arguments for add-lift.\n"
                     + "Usage: add-lift <name_or_id> w/<weightKg> s/<sets> r/<reps>");
@@ -189,8 +189,9 @@ public class Parser {
             String dictionaryName = dictionary.getLiftName(shortcutId);
 
             if (dictionaryName == null) {
-                throw new FitLoggerException("Shortcut ID [" + shortcutId + "] does not exist in the database. "
-                        + "Type 'view-database' to see available shortcuts.");
+                throw new FitLoggerException(
+                        "Shortcut ID [" + shortcutId + "] does not exist in the database. "
+                                + "Type 'view-database' to see available shortcuts.");
             }
             name = dictionaryName;
 
@@ -204,7 +205,7 @@ public class Parser {
         int sets;
         int reps;
         try {
-            //check if correct order
+            // check if correct order
             String[] checkDataIntegrity = splitInput(arguments.trim(), "s/", 2);
             if (!checkDataIntegrity[0].contains("w/") || !checkDataIntegrity[1].contains("r/")) {
                 throw new FitLoggerException("Invalid format for add-lift.\n"
@@ -236,15 +237,15 @@ public class Parser {
     private static Command parseAddShortcut(String arguments, ExerciseDictionary dictionary)
             throws FitLoggerException {
         if (arguments.isBlank()) {
-            throw new FitLoggerException("Missing arguments.\n"
-                    + "Usage: add-shortcut <lift/run> <ID> <Exercise Name>");
+            throw new FitLoggerException(
+                    "Missing arguments.\n" + "Usage: add-shortcut <lift/run> <ID> <Exercise Name>");
         }
 
         // Split into exactly 3 parts: type, ID, and the rest is the name
         String[] parts = splitInput(arguments, " ", 3);
         if (parts.length < 3) {
-            throw new FitLoggerException("Invalid format.\n"
-                    + "Usage: add-shortcut <lift/run> <ID> <Exercise Name>");
+            throw new FitLoggerException(
+                    "Invalid format.\n" + "Usage: add-shortcut <lift/run> <ID> <Exercise Name>");
         }
 
         String type = parts[0].toLowerCase();
@@ -325,7 +326,9 @@ public class Parser {
     /**
      * Parses a search-date command.
      *
-     * <p>Expected format: {@code search-date <YYYY-MM-DD>}</p>
+     * <p>
+     * Expected format: {@code search-date <YYYY-MM-DD>}
+     * </p>
      *
      * @param arguments Everything after {@code search-date }.
      * @return A {@link SearchDateCommand} for the parsed date.
@@ -347,49 +350,46 @@ public class Parser {
 
     private static Command parseProfile(String arguments) throws FitLoggerException {
         if (arguments.isBlank()) {
-            throw new FitLoggerException(
-                    "Missing arguments for viewing/setting up profile.\n"
-                            + "Usage: profile view OR profile set <field> <value>");
+            throw new FitLoggerException("Missing arguments for viewing/setting up profile.\n"
+                    + "Usage: profile view OR profile set <field> <value>");
         }
         String[] info = splitInput(arguments, " ", 3);
         assert info.length > 0 : "Profile arguments are missing";
 
         try {
             switch (info[0].toLowerCase()) {
-            case "view":
-                //ignores all entries after it
-                return new ViewProfileCommand();
-            case "set":
-                if (info.length < 2) {
-                    throw new FitLoggerException("Field not provided. \n"
-                            + "Available fields: name / height / weight");
-                }
-                assert !info[1].isEmpty();
-                assert !info[1].isBlank();
+                case "view":
+                    // ignores all entries after it
+                    return new ViewProfileCommand();
+                case "set":
+                    if (info.length < 2) {
+                        throw new FitLoggerException("Field not provided. \n"
+                                + "Available fields: name / height / weight");
+                    }
+                    assert !info[1].isEmpty();
+                    assert !info[1].isBlank();
 
-                double updatedHeightOrWeight = -1;
+                    double updatedHeightOrWeight = -1;
 
-                switch (info[1].toLowerCase()) {
-                case "name":
-                    return new UpdateProfileCommand(info[2], -1, -1);
-                case "height":
-                    updatedHeightOrWeight = updateHeightOrWeight(info[2], 0.3, 3);
-                    return new UpdateProfileCommand(null, updatedHeightOrWeight, -1);
-                case "weight":
-                    updatedHeightOrWeight = updateHeightOrWeight(info[2], 10, 500);
-                    return new UpdateProfileCommand(null, -1, updatedHeightOrWeight);
-                default:
-                    throw new FitLoggerException("Invalid field provided. \n"
-                            + "Available fields: name / height / weight");
-                }
-            default:
-                throw new FitLoggerException("Invalid profile action. \n"
-                        + "Usage: profile view OR profile set <field> <value>");
+                    switch (info[1].toLowerCase()) {
+                        case "name":
+                            return new UpdateProfileCommand(info[2], -1, -1);
+                        case "height":
+                            updatedHeightOrWeight = updateHeightOrWeight(info[2], 0.3, 3);
+                            return new UpdateProfileCommand(null, updatedHeightOrWeight, -1);
+                        case "weight":
+                            updatedHeightOrWeight = updateHeightOrWeight(info[2], 10, 500);
+                            return new UpdateProfileCommand(null, -1, updatedHeightOrWeight);
+                        default:
+                            throw new FitLoggerException("Invalid profile action. \n"
+                                    + "Usage: profile view OR profile set <field> <value>");
+                    }
             }
         } catch (IndexOutOfBoundsException e) {
-            throw new FitLoggerException("No value provided. \n"
-                    + "Please provide a value to be updated.");
+            throw new FitLoggerException(
+                    "No value provided. \n" + "Please provide a value to be updated.");
         }
+        throw new FitLoggerException("Unexpected error parsing profile command.");
     }
 
     private static double updateHeightOrWeight(String value, double lowerBound, double upperBound)
@@ -397,8 +397,8 @@ public class Parser {
         try {
             double newValue = Double.parseDouble(value);
             if (newValue < lowerBound || newValue > upperBound) {
-                throw new FitLoggerException("Your Height/Weight is unrealistically low/high.\n" +
-                        "Please ensure your values are correctly, height in m and weight in Kg");
+                throw new FitLoggerException("Your Height/Weight is unrealistically low/high.\n"
+                        + "Please ensure your values are correctly, height in m and weight in Kg");
             }
             return newValue;
         } catch (NumberFormatException e) {

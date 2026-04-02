@@ -74,8 +74,8 @@ class ParserTest {
 
     @Test
     void addLift_missingArgs_throwsException() {
-        FitLoggerException ex =
-                assertThrows(FitLoggerException.class, () -> Parser.parse("add-lift", workouts, dictionary));
+        FitLoggerException ex = assertThrows(FitLoggerException.class,
+                () -> Parser.parse("add-lift", workouts, dictionary));
         assertTrue(ex.getMessage().toLowerCase().contains("missing"),
                 "Error should mention missing arguments");
     }
@@ -144,8 +144,8 @@ class ParserTest {
 
     @Test
     void addRun_missingArgs_throwsException() {
-        FitLoggerException ex =
-                assertThrows(FitLoggerException.class, () -> Parser.parse("add-run", workouts, dictionary));
+        FitLoggerException ex = assertThrows(FitLoggerException.class,
+                () -> Parser.parse("add-run", workouts, dictionary));
         assertTrue(ex.getMessage().toLowerCase().contains("missing"),
                 "Error should mention missing arguments");
     }
@@ -208,7 +208,8 @@ class ParserTest {
     @Test
     void parse_viewDatabase_returnsViewDatabaseCommand() throws FitLoggerException {
         Command cmd = Parser.parse("view-database", workouts, dictionary);
-        assertTrue(cmd instanceof ViewDatabaseCommand, "Expected ViewDatabaseCommand for view-database");
+        assertTrue(cmd instanceof ViewDatabaseCommand,
+                "Expected ViewDatabaseCommand for view-database");
     }
 
     @Test
