@@ -199,6 +199,60 @@ Expected error:
 
 ---
 
+### Setting your profile: `profile set`
+
+Updates one field of your profile.
+
+Format: `profile set <field> <value>`
+
+- `<field>` — must be one of `name`, `height`, or `weight`.
+- For `height`, provide a value in metres (e.g. `1.75`). Accepted range: `0.3m` to `3m`.
+- For `weight`, provide a value in kilograms (e.g. `70`). Accepted range: `10kg` to `500kg`.
+- For `name`, provide any text string.
+
+Examples:
+
+- `profile set name John`
+- `profile set height 1.75`
+- `profile set weight 70`
+
+Expected output:
+
+```
+Height has been updated to 1.75m
+```
+
+Invalid input example: `profile set weight abc`
+
+Expected error: `Please provide a valid number for height/weight`
+
+Invalid input example: `profile set height 0.1`
+
+Expected error: `Your Height/Weight is unrealistically low/high.` `Please ensure your values are correctly, height in m and weight in Kg`
+
+---
+
+### Viewing your profile: `profile view`
+
+Displays your currently saved profile information, including name, height, and weight.
+
+Format: `profile view`
+
+Expected output:
+
+```
+-----------------------------------------------------
+Name: John
+Height: 1.75m
+Weight: 70.00kg
+-----------------------------------------------------
+```
+
+- If a field has not been set yet, it will display a placeholder (e.g., `name not set yet`).
+- This command ignores all trailing inputs
+
+---
+
 ### Exit the app: `exit`
 
 Saves data and closes FitLogger.
