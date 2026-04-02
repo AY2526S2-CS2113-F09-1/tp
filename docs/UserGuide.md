@@ -199,6 +199,23 @@ Expected error:
 
 ---
 
+### Viewing total mileage: `view-total-mileage`
+
+Displays the total distance you have run across all logged run workouts.
+
+Format: `view-total-mileage`
+
+Expected output:
+
+```
+Your total distance ran is 13.50km across 3 runs.
+```
+
+- Only `add-run` workouts are counted. Strength workouts are excluded.
+- If no runs have been logged, the total will show `0.00km` across `0` runs.
+
+---
+
 ### Setting your profile: `profile set`
 
 Updates one field of your profile.
