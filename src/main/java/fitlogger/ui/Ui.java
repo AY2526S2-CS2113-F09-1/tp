@@ -3,6 +3,7 @@ package fitlogger.ui;
 import fitlogger.workout.Workout;
 import fitlogger.exercisedictionary.ExerciseDictionary;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class Ui {
@@ -61,7 +62,7 @@ public class Ui {
                 + "    view-database                              View exercise shortcuts and their IDs\n"
                 + "    history                                    View all logged workouts\n"
                 + "    delete <index>                             Delete workout by number\n"
-                + "    delete <name>                              Delete workout by name\n"
+                + "    search-date <YYYY-MM-DD>                   View workouts completed on a date\n"
                 + "    exit                                       Save and close FitLogger";
         showMessage(helpMessage);
     }
@@ -76,6 +77,18 @@ public class Ui {
 
     public void printWorkout(Workout workout) {
         showMessage(workout.toString());
+    }
+
+    public void showWorkoutList(List<Workout> workouts) {
+        if (workouts.isEmpty()) {
+            showMessage("No workouts found.");
+            return;
+        }
+
+        for (int i = 0; i < workouts.size(); i++) {
+            showMessageNoNewline(i + 1 + ". ");
+            printWorkout(workouts.get(i));
+        }
     }
 
     public void showExerciseDatabase(ExerciseDictionary dictionary) {

@@ -15,7 +15,7 @@ public class ViewProfileCommand extends ProfileCommand {
 
         ui.showMessageNoNewline("Height: ");
         String heightToDisplay = (profile.getHeight() == -1) ?
-                "height not set yet" : profile.getHeight() + "m";
+                "height not set yet" : String.format("%.2fm", profile.getHeight());
         ui.showMessage(heightToDisplay);
 
         ui.showMessageNoNewline("Weight: ");
