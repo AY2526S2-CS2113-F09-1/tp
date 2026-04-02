@@ -94,6 +94,35 @@ Now you have 3 workouts in the list.
 
 ---
 
+### Logging a run workout: `add-run`
+
+Logs a run workout. You can identify the run type by full name or by shortcut ID from the database.
+
+Format: `add-run <NAME_OR_ID> d/<distanceKm> t/<durationMinutes>`
+
+- `<NAME_OR_ID>` — the full run name (e.g. `Tempo Run`) or a numeric shortcut ID (e.g. `2`). Use `view-database` to see available IDs.
+- `d/` — distance in kilometres (positive number).
+- `t/` — duration in minutes (positive number, decimals allowed e.g. `25.5`).
+- The flags `d/`, `t/` must appear in that order.
+
+Examples:
+
+- `add-run Tempo Run d/5.0 t/25`
+- `add-run 2 d/5.0 t/25` _(shortcut ID 2 → Tempo Run)_
+- `add-run Easy Run d/3.0 t/20.5` _(fractional duration)_
+
+Expected output:
+
+```
+Got it. I've added this workout:
+[Run] Tempo Run (Date: 2026-04-03) (Distance: 5.0km, Duration: 25.0 mins)
+Now you have 4 workouts in the list.
+```
+
+> You can correct any field later using `edit <index> <field>/<value>`. Valid fields for runs: `name`, `distance`, `duration`.
+
+---
+
 ### Edit an existing workout: `edit`
 
 Updates one field of an existing workout by index.
@@ -147,6 +176,29 @@ Expected error:
 
 ---
 
+### Viewing workout history: `history`
+
+Displays all workouts you have logged, in the order they were added.
+
+Format: `history`
+
+- Both run and strength workouts are listed together.
+- Each workout is numbered for use with `edit` and `delete`.
+
+Expected output:
+
+```
+Here's your past exercises
+-----------------------------------------------------
+1. [Lift] Bench Press (Date: 2026-04-02) (80.0kg, 3 sets of 8 reps)
+2. [Run] Tempo Run (Date: 2026-04-03) (Distance: 5.0km, Duration: 25.0 mins)
+-----------------------------------------------------
+```
+
+- If no workouts have been logged yet, nothing will be listed between the lines.
+
+---
+
 ### Search workouts by date: `search-date`
 
 Shows workouts completed on the specified date.
@@ -167,6 +219,77 @@ Invalid input example:
 
 Expected error:
 `Invalid date format for search-date.`
+
+---
+
+### Viewing total mileage: `view-total-mileage`
+
+Displays the total distance you have run across all logged run workouts.
+
+Format: `view-total-mileage`
+
+Expected output:
+
+```
+Your total distance ran is 13.50km across 3 runs.
+```
+
+- Only `add-run` workouts are counted. Strength workouts are excluded.
+- If no runs have been logged, the total will show `0.00km` across `0` runs.
+
+---
+
+### Setting your profile: `profile set`
+
+Updates one field of your profile.
+
+Format: `profile set <field> <value>`
+
+- `<field>` — must be one of `name`, `height`, or `weight`.
+- For `height`, provide a value in metres (e.g. `1.75`). Accepted range: `0.3m` to `3m`.
+- For `weight`, provide a value in kilograms (e.g. `70`). Accepted range: `10kg` to `500kg`.
+- For `name`, provide any text string.
+
+Examples:
+
+- `profile set name John`
+- `profile set height 1.75`
+- `profile set weight 70`
+
+Expected output:
+
+```
+Height has been updated to 1.75m
+```
+
+Invalid input example: `profile set weight abc`
+
+Expected error: `Please provide a valid number for height/weight`
+
+Invalid input example: `profile set height 0.1`
+
+Expected error: `Your Height/Weight is unrealistically low/high.` `Please ensure your values are correctly, height in m and weight in Kg`
+
+---
+
+### Viewing your profile: `profile view`
+
+Displays your currently saved profile information, including name, height, and weight.
+
+Format: `profile view`
+
+Expected output:
+
+```
+-----------------------------------------------------
+Name: John
+Height: 1.75m
+Weight: 70.00kg
+-----------------------------------------------------
+```
+
+- If a field has not been set yet, it will display a placeholder (e.g., `name not set yet`).
+- This command ignores all trailing inputs
 
 ---
 
