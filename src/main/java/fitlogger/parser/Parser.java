@@ -35,50 +35,50 @@ public class Parser {
         String arguments = (parts.length > 1) ? parts[1].trim() : "";
 
         switch (commandWord) {
-            case "delete":
-                return new DeleteCommand(arguments);
+        case "delete":
+            return new DeleteCommand(arguments);
 
-            case "search-date":
-                return parseSearchDate(arguments);
+        case "search-date":
+            return parseSearchDate(arguments);
 
-            case "exit":
-                return new ExitCommand();
+        case "exit":
+            return new ExitCommand();
 
-            case "profile":
-                return parseProfile(arguments);
+        case "profile":
+            return parseProfile(arguments);
 
-            case "view-total-mileage":
-                return new ViewShoeMileageCommand();
+        case "view-total-mileage":
+            return new ViewShoeMileageCommand();
 
-            case "edit":
-                return parseEdit(arguments, workouts);
+        case "edit":
+            return parseEdit(arguments, workouts);
 
-            case "add-run":
-                return parseAddRun(arguments, workouts, dictionary);
+        case "add-run":
+            return parseAddRun(arguments, workouts, dictionary);
 
-            case "add-lift":
-                return parseAddLift(arguments, workouts, dictionary);
+        case "add-lift":
+            return parseAddLift(arguments, workouts, dictionary);
 
-            case "list":
-                // fallthrough intentional — same behaviour as history
-            case "history":
-                return new ViewHistoryCommand();
+        case "list":
+            // fallthrough intentional — same behaviour as history
+        case "history":
+            return new ViewHistoryCommand();
 
-            case "help":
-                return new HelpCommand();
+        case "help":
+            return new HelpCommand();
 
-            case "view-database":
-                return new ViewDatabaseCommand(dictionary);
+        case "view-database":
+            return new ViewDatabaseCommand(dictionary);
 
-            case "add-shortcut":
-                return parseAddShortcut(arguments, dictionary);
+        case "add-shortcut":
+            return parseAddShortcut(arguments, dictionary);
 
-            case "lastlift":
-                return new ViewLastLiftCommand(arguments);
+        case "lastlift":
+            return new ViewLastLiftCommand(arguments);
 
-            default:
-                throw new FitLoggerException(
-                        "I'm sorry, I don't know what '" + commandWord + "' means.\nSee 'help'");
+        default:
+            throw new FitLoggerException(
+                    "I'm sorry, I don't know what '" + commandWord + "' means.\nSee 'help'");
         }
     }
 
@@ -358,32 +358,32 @@ public class Parser {
 
         try {
             switch (info[0].toLowerCase()) {
-                case "view":
-                    // ignores all entries after it
-                    return new ViewProfileCommand();
-                case "set":
-                    if (info.length < 2) {
-                        throw new FitLoggerException("Field not provided. \n"
-                                + "Available fields: name / height / weight");
-                    }
-                    assert !info[1].isEmpty();
-                    assert !info[1].isBlank();
+            case "view":
+                // ignores all entries after it
+                return new ViewProfileCommand();
+            case "set":
+                if (info.length < 2) {
+                    throw new FitLoggerException("Field not provided. \n"
+                            + "Available fields: name / height / weight");
+                }
+                assert !info[1].isEmpty();
+                assert !info[1].isBlank();
 
-                    double updatedHeightOrWeight = -1;
+                double updatedHeightOrWeight = -1;
 
-                    switch (info[1].toLowerCase()) {
-                        case "name":
-                            return new UpdateProfileCommand(info[2], -1, -1);
-                        case "height":
-                            updatedHeightOrWeight = updateHeightOrWeight(info[2], 0.3, 3);
-                            return new UpdateProfileCommand(null, updatedHeightOrWeight, -1);
-                        case "weight":
-                            updatedHeightOrWeight = updateHeightOrWeight(info[2], 10, 500);
-                            return new UpdateProfileCommand(null, -1, updatedHeightOrWeight);
-                        default:
-                            throw new FitLoggerException("Invalid profile action. \n"
-                                    + "Usage: profile view OR profile set <field> <value>");
-                    }
+                switch (info[1].toLowerCase()) {
+                case "name":
+                    return new UpdateProfileCommand(info[2], -1, -1);
+                case "height":
+                    updatedHeightOrWeight = updateHeightOrWeight(info[2], 0.3, 3);
+                    return new UpdateProfileCommand(null, updatedHeightOrWeight, -1);
+                case "weight":
+                    updatedHeightOrWeight = updateHeightOrWeight(info[2], 10, 500);
+                    return new UpdateProfileCommand(null, -1, updatedHeightOrWeight);
+                default:
+                    throw new FitLoggerException("Invalid profile action. \n"
+                            + "Usage: profile view OR profile set <field> <value>");
+                }
             }
         } catch (IndexOutOfBoundsException e) {
             throw new FitLoggerException(
