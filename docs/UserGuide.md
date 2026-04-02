@@ -94,6 +94,35 @@ Now you have 3 workouts in the list.
 
 ---
 
+### Logging a run workout: `add-run`
+
+Logs a run workout. You can identify the run type by full name or by shortcut ID from the database.
+
+Format: `add-run <NAME_OR_ID> d/<distanceKm> t/<durationMinutes>`
+
+- `<NAME_OR_ID>` — the full run name (e.g. `Tempo Run`) or a numeric shortcut ID (e.g. `2`). Use `view-database` to see available IDs.
+- `d/` — distance in kilometres (positive number).
+- `t/` — duration in minutes (positive number, decimals allowed e.g. `25.5`).
+- The flags `d/`, `t/` must appear in that order.
+
+Examples:
+
+- `add-run Tempo Run d/5.0 t/25`
+- `add-run 2 d/5.0 t/25` _(shortcut ID 2 → Tempo Run)_
+- `add-run Easy Run d/3.0 t/20.5` _(fractional duration)_
+
+Expected output:
+
+```
+Got it. I've added this workout:
+[Run] Tempo Run (Date: 2026-04-03) (Distance: 5.0km, Duration: 25.0 mins)
+Now you have 4 workouts in the list.
+```
+
+> You can correct any field later using `edit <index> <field>/<value>`. Valid fields for runs: `name`, `distance`, `duration`.
+
+---
+
 ### Edit an existing workout: `edit`
 
 Updates one field of an existing workout by index.
