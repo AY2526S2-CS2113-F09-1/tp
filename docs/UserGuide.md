@@ -176,6 +176,29 @@ Expected error:
 
 ---
 
+### Viewing workout history: `history`
+
+Displays all workouts you have logged, in the order they were added.
+
+Format: `history`
+
+- Both run and strength workouts are listed together.
+- Each workout is numbered for use with `edit` and `delete`.
+
+Expected output:
+
+```
+Here's your past exercises
+-----------------------------------------------------
+1. [Lift] Bench Press (Date: 2026-04-02) (80.0kg, 3 sets of 8 reps)
+2. [Run] Tempo Run (Date: 2026-04-03) (Distance: 5.0km, Duration: 25.0 mins)
+-----------------------------------------------------
+```
+
+- If no workouts have been logged yet, nothing will be listed between the lines.
+
+---
+
 ### Search workouts by date: `search-date`
 
 Shows workouts completed on the specified date.
