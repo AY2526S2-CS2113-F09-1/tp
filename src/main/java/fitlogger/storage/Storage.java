@@ -16,6 +16,7 @@ import fitlogger.profile.UserProfile;
 import fitlogger.workout.RunWorkout;
 import fitlogger.workout.StrengthWorkout;
 import fitlogger.workout.Workout;
+import fitlogger.exercisedictionary.ExerciseDictionary;
 
 /**
  * Handles persistence of workout data to and from the file system.
@@ -51,6 +52,12 @@ public class Storage {
     private static final int INDEX_STRENGTH_SETS = 4;
     private static final int INDEX_STRENGTH_REPS = 5;
 
+    private ExerciseDictionary dictionary;
+
+    public void setDictionary(ExerciseDictionary dictionary) { // <-- ADD THIS
+        this.dictionary = dictionary;
+    }
+
     // ── saveData ─────────────────────────────────────────────────────────────
 
     /**
@@ -74,6 +81,15 @@ public class Storage {
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(profile.toFileFormat());
             writer.write(System.lineSeparator());
+
+            if (this.dictionary != null) {
+                for (java.util.Map.Entry<Integer, String> entry : this.dictionary.getLiftShortcuts().entrySet()) {
+                    writer.write("S | lift | " + entry.getKey() + " | " + entry.getValue() + System.lineSeparator());
+                }
+                for (java.util.Map.Entry<Integer, String> entry : this.dictionary.getRunShortcuts().entrySet()) {
+                    writer.write("S | run | " + entry.getKey() + " | " + entry.getValue() + System.lineSeparator());
+                }
+            }
 
             for (Workout workout : workouts) {
                 writer.write(workout.toFileFormat());
@@ -145,12 +161,15 @@ public class Storage {
         String[] heightData = Parser.splitInput(weightData[0], "height: ", 2);
         String[] nameData = Parser.splitInput(heightData[0], "name: ", 2);
 
-        //no errors in storage
+        double height = Double.parseDouble(heightData[1].trim());
+        double weight = Double.parseDouble(weightData[1].trim());
+
+        //errors in double values handled above, errors in name handled with if statement
         if (!nameData[1].trim().equals("null")) {
             profile.setName(nameData[1].trim());
         }
-        profile.setHeight(Double.parseDouble(heightData[1].trim()));
-        profile.setWeight(Double.parseDouble(weightData[1].trim()));
+        profile.setHeight(height);
+        profile.setWeight(weight);
     }
 
     /**
@@ -171,6 +190,11 @@ public class Storage {
             return parseRunWorkout(fields);
         case "L":
             return parseStrengthWorkout(fields);
+        case "S":
+            if (this.dictionary != null) {
+                parseShortcut(fields);
+            }
+            return null;
         default:
             System.out.println("Warning: Unknown workout type '" + type + "' — skipping.");
             return null;
@@ -225,6 +249,29 @@ public class Storage {
             return new StrengthWorkout(description, weight, sets, reps, date);
         } catch (FitLoggerException exception) {
             throw new IllegalArgumentException(exception.getMessage(), exception);
+        }
+    }
+
+    private void parseShortcut(String[] fields) {
+        if (fields.length < 4) {
+            System.out.println("Warning: Corrupted shortcut line.");
+            return;
+        }
+
+        String type = fields[1].trim();
+        int id;
+        try {
+            id = Integer.parseInt(fields[2].trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Warning: Invalid shortcut ID format.");
+            return;
+        }
+        String name = fields[3].trim();
+
+        if (type.equals("lift")) {
+            this.dictionary.addLiftShortcut(id, name);
+        } else if (type.equals("run")) {
+            this.dictionary.addRunShortcut(id, name);
         }
     }
 

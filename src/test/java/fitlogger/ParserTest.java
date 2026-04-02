@@ -38,6 +38,7 @@ class ParserTest {
         storage = new Storage();
         ui = new TestUi();
         profile = new UserProfile();
+        dictionary = new ExerciseDictionary();
     }
 
     // ── add-lift: happy path ──────────────────────────────────────────────
@@ -244,6 +245,35 @@ class ParserTest {
     void parse_exit_returnsExitCommand() throws FitLoggerException {
         Command cmd = Parser.parse("exit", workouts, dictionary);
         assertTrue(cmd instanceof ExitCommand, "Expected ExitCommand for exit");
+    }
+
+    // ── add-shortcut tests ────────────────────────────────────────────────
+
+    @Test
+    void addShortcut_validLift_parsesCorrectly() throws FitLoggerException {
+        Command cmd = Parser.parse("add-shortcut lift 99 Muscle Up", workouts, dictionary);
+        cmd.execute(storage, workouts, ui, profile);
+        assertEquals("Muscle Up", dictionary.getLiftName(99), "Muscle Up should be added to lift dictionary");
+    }
+
+    @Test
+    void addShortcut_validRun_parsesCorrectly() throws FitLoggerException {
+        Command cmd = Parser.parse("add-shortcut run 99 Marathon", workouts, dictionary);
+        cmd.execute(storage, workouts, ui, profile);
+        assertEquals("Marathon", dictionary.getRunName(99), "Marathon should be added to run dictionary");
+    }
+
+    @Test
+    void addShortcut_invalidType_throwsException() {
+        FitLoggerException ex = assertThrows(FitLoggerException.class,
+                () -> Parser.parse("add-shortcut swim 5 Freestyle", workouts, dictionary));
+        assertTrue(ex.getMessage().contains("'lift' or 'run'"), "Should reject invalid types");
+    }
+
+    @Test
+    void addShortcut_missingArgs_throwsException() {
+        assertThrows(FitLoggerException.class,
+                () -> Parser.parse("add-shortcut lift 5", workouts, dictionary));
     }
 
     // ── unknown command ───────────────────────────────────────────────────────

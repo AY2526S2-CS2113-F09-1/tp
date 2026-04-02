@@ -1,5 +1,6 @@
 package fitlogger.parser;
 
+
 import fitlogger.command.AddWorkoutCommand;
 import fitlogger.command.Command;
 import fitlogger.command.DeleteCommand;
@@ -10,7 +11,10 @@ import fitlogger.command.SearchDateCommand;
 import fitlogger.command.UpdateProfileCommand;
 import fitlogger.command.ViewDatabaseCommand;
 import fitlogger.command.ViewHistoryCommand;
+import fitlogger.command.ViewLastLiftCommand;
 import fitlogger.command.ViewProfileCommand;
+import fitlogger.command.ViewShoeMileageCommand;
+import fitlogger.command.AddShortcutCommand;
 import fitlogger.exception.FitLoggerException;
 import fitlogger.workout.RunWorkout;
 import fitlogger.workout.StrengthWorkout;
@@ -43,6 +47,9 @@ public class Parser {
         case "profile":
             return parseProfile(arguments);
 
+        case "view-total-mileage":
+            return new ViewShoeMileageCommand();
+
         case "edit":
             return parseEdit(arguments, workouts);
 
@@ -62,6 +69,12 @@ public class Parser {
 
         case "view-database":
             return new ViewDatabaseCommand(dictionary);
+
+        case "add-shortcut":
+            return parseAddShortcut(arguments, dictionary);
+            
+        case "lastlift":
+            return new ViewLastLiftCommand(arguments);
 
         default:
             throw new FitLoggerException(
@@ -85,14 +98,14 @@ public class Parser {
             throws FitLoggerException {
         if (arguments.isBlank()) {
             throw new FitLoggerException("Missing arguments for add-run.\n"
-                    + "Usage: add-run <name_or_id> d/<distance> t/<durationMinutes>");
+                    + "Usage: add-run <name_or_id> d/<distanceKm> t/<durationMinutes>");
         }
 
         String[] runInfo = splitInput(arguments, "d/|t/", 3);
 
         if (runInfo.length < 3) {
             throw new FitLoggerException("Invalid format for add-run.\n"
-                    + "Usage: add-run <name_or_id> d/<distance> t/<durationMinutes>");
+                    + "Usage: add-run <name_or_id> d/<distanceKm> t/<durationMinutes>");
         }
 
         String name = runInfo[0].trim();
@@ -115,11 +128,18 @@ public class Parser {
         double distance;
         double durationMinutes;
         try {
+            //check if d/comes before t/
+            String[] checkDataIntegrity = splitInput(arguments.trim(), "d/", 0);
+            if (checkDataIntegrity[0].contains("t/")) {
+                throw new FitLoggerException("Invalid format for add-run.\n"
+                        + "Usage: add-run <name_or_id> d/<distanceKm> t/<durationMinutes>");
+            }
+
             distance = Double.parseDouble(runInfo[1].trim());
             durationMinutes = Double.parseDouble(runInfo[2].trim());
         } catch (NumberFormatException e) {
             throw new FitLoggerException("Distance and duration must be valid numbers.\n"
-                    + "Usage: add-run <name> d/<distance> t/<durationMinutes>");
+                    + "Usage: add-run <name> d/<distanceKm> t/<durationMinutes>");
         }
 
         if (distance <= 0) {
@@ -184,6 +204,12 @@ public class Parser {
         int sets;
         int reps;
         try {
+            //check if correct order
+            String[] checkDataIntegrity = splitInput(arguments.trim(), "s/", 2);
+            if (!checkDataIntegrity[0].contains("w/") || !checkDataIntegrity[1].contains("r/")) {
+                throw new FitLoggerException("Invalid format for add-lift.\n"
+                        + "Usage: add-lift <name_or_id> w/<weightKg> s/<sets> r/<reps>");
+            }
             weight = Double.parseDouble(info[1].trim());
             sets = Integer.parseInt(info[2].trim());
             reps = Integer.parseInt(info[3].trim());
@@ -205,6 +231,42 @@ public class Parser {
 
         Workout strength = new StrengthWorkout(name, weight, sets, reps, LocalDate.now());
         return new AddWorkoutCommand(strength);
+    }
+
+    private static Command parseAddShortcut(String arguments, ExerciseDictionary dictionary)
+            throws FitLoggerException {
+        if (arguments.isBlank()) {
+            throw new FitLoggerException("Missing arguments.\n"
+                    + "Usage: add-shortcut <lift/run> <ID> <Exercise Name>");
+        }
+
+        // Split into exactly 3 parts: type, ID, and the rest is the name
+        String[] parts = splitInput(arguments, " ", 3);
+        if (parts.length < 3) {
+            throw new FitLoggerException("Invalid format.\n"
+                    + "Usage: add-shortcut <lift/run> <ID> <Exercise Name>");
+        }
+
+        String type = parts[0].toLowerCase();
+        if (!type.equals("lift") && !type.equals("run")) {
+            throw new FitLoggerException("Shortcut type must be 'lift' or 'run'.");
+        }
+
+        int id;
+        try {
+            id = Integer.parseInt(parts[1].trim());
+        } catch (NumberFormatException e) {
+            throw new FitLoggerException("Shortcut ID must be a number.");
+        }
+
+        if (id <= 0) {
+            throw new FitLoggerException("Shortcut ID must be a positive number.");
+        }
+
+        String name = parts[2].trim();
+        validateNoStorageDelimiters(name, "Shortcut name");
+
+        return new AddShortcutCommand(type, id, name, dictionary);
     }
 
     /**
@@ -293,7 +355,7 @@ public class Parser {
         assert info.length > 0 : "Profile arguments are missing";
 
         try {
-            switch (info[0]) {
+            switch (info[0].toLowerCase()) {
             case "view":
                 //ignores all entries after it
                 return new ViewProfileCommand();
@@ -307,7 +369,7 @@ public class Parser {
 
                 double updatedHeightOrWeight = -1;
 
-                switch (info[1]) {
+                switch (info[1].toLowerCase()) {
                 case "name":
                     return new UpdateProfileCommand(info[2], -1, -1);
                 case "height":
@@ -335,8 +397,8 @@ public class Parser {
         try {
             double newValue = Double.parseDouble(value);
             if (newValue < lowerBound || newValue > upperBound) {
-                throw new FitLoggerException("Your Height/Weight is too low/high.\n" +
-                        "Please ensure your values are correctly inputted");
+                throw new FitLoggerException("Your Height/Weight is unrealistically low/high.\n" +
+                        "Please ensure your values are correctly, height in m and weight in Kg");
             }
             return newValue;
         } catch (NumberFormatException e) {

@@ -1,5 +1,6 @@
 package fitlogger.ui;
 
+import fitlogger.workout.StrengthWorkout;
 import fitlogger.workout.Workout;
 import fitlogger.exercisedictionary.ExerciseDictionary;
 
@@ -40,8 +41,6 @@ public class Ui {
 
     /**
      * Displays an error message prefixed with "[ERROR]".
-     * All {@link fitlogger.exception.FitLoggerException} messages should be
-     * routed here rather than printed directly.
      *
      * @param message The error description to display.
      */
@@ -51,19 +50,22 @@ public class Ui {
 
     public void showHelpMenu() {
         String helpMessage = "Command Guide:\n"
-                + "    help                                       List available commands\n"
-                + "    profile view                               View your profile\n"
-                + "    profile set <field> <value>                Update your profile. "
-                + "Available fields: name/weight/height \n"
-                + "    add-run <n> d/<dist> t/<mins>              Log a run\n"
-                + "    add-lift <n> w/<kg> s/<sets> r/<reps>      Log a lift workout\n"
-                + "    edit <index> <field>/<value>               "
+                + "    help                                           List available commands\n"
+                + "    profile view                                   View your profile\n"
+                + "    profile set <field> <value>                    Update your profile. "
+                + "Available fields: name / weight / height \n"
+                + "    add-run <name_or_id> d/<distKm> t/<mins>       Log a run\n"
+                + "    add-lift <name_or_id> w/<kg> s/<sets> r/<reps> Log a lift workout\n"
+                + "    edit <index> <field>/<value>                   "
                 + "Edit field: name/description/weight/sets/reps/distance/duration\n"
-                + "    view-database                              View exercise shortcuts and their IDs\n"
-                + "    history                                    View all logged workouts\n"
-                + "    delete <index>                             Delete workout by number\n"
-                + "    search-date <YYYY-MM-DD>                   View workouts completed on a date\n"
-                + "    exit                                       Save and close FitLogger";
+                + "    view-database                                  View exercise shortcuts and their IDs\n"
+                + "    add-shortcut <lift/run> <ID> <name>            Add a custom exercise shortcut\n"
+                + "    view-total-mileage                             View total distance ran across all run workouts\n"
+                + "    lastlift <EXERCISE_NAME>                       View most recent lift for an exercise\n"
+                + "    history                                        View all logged workouts\n"
+                + "    delete <index>                                 Delete workout by number\n"
+                + "    search-date <YYYY-MM-DD>                       View workouts completed on a date\n"
+                + "    exit                                           Save and close FitLogger";
         showMessage(helpMessage);
     }
 
@@ -102,4 +104,38 @@ public class Ui {
             showMessage("  [" + entry.getKey() + "] -> " + entry.getValue());
         }
         showLine();
-    }}
+    }
+
+    /**
+     * Displays the stats of the most recently found {@link StrengthWorkout}.
+     *
+     * @param lift The most recent strength workout to display.
+     */
+    public void showLastLift(StrengthWorkout lift) {
+        showLine();
+        showMessage("Last recorded lift for: " + lift.getDescription());
+        showMessage("  Date   : " + lift.getDate());
+        showMessage("  Weight : " + lift.getWeight() + "kg");
+        showMessage("  Sets   : " + lift.getSets());
+        showMessage("  Reps   : " + lift.getReps());
+        showLine();
+    }
+
+    public void showProfile(String name, double height, double weight) {
+        showLine();
+        showMessageNoNewline("Name: ");
+        String nameToDisplay = (name == null) ? "name not set yet" : name;
+        showMessage(nameToDisplay);
+
+        showMessageNoNewline("Height: ");
+        String heightToDisplay = (height == -1) ?
+                "height not set yet" : String.format("%.2f", height) + "m";
+        showMessage(heightToDisplay);
+
+        showMessageNoNewline("Weight: ");
+        String weightToDisplay = (weight == -1) ?
+                "weight not set yet" : String.format("%.2f", weight) + "kg";
+        showMessage(weightToDisplay);
+        showLine();
+    }
+}

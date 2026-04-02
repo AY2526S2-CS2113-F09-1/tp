@@ -26,11 +26,11 @@ public class UpdateProfileCommand extends ProfileCommand{
         }
         if (newHeight != -1) {
             profile.setHeight(newHeight);
-            ui.showMessage("Height has been updated to " + newHeight + "m");
+            ui.showMessage("Height has been updated to " + String.format("%.2f", newHeight) + "m");
         }
         if (newWeight != -1) {
             profile.setWeight(newWeight);
-            ui.showMessage("Weight has been updated to " + newWeight + "kg");
+            ui.showMessage("Weight has been updated to " + String.format("%.2f", newWeight) + "kg");
         }
     }
 }
