@@ -292,6 +292,103 @@ Weight: 70.00kg
 - This command ignores all trailing inputs
 
 ---
+### Viewing your last lift: `lastlift`
+
+Displays the most recent recorded stats for a specific strength exercise.
+Useful for quickly checking what weight, sets, and reps you last did before
+heading to the gym.
+
+Format: `lastlift <EXERCISE_NAME>`
+
+Examples:
+- `lastlift Bench Press`
+- `lastlift Squat`
+
+Expected output:
+```
+-----------------------------------------------------
+Last recorded lift for: Bench Press
+  Date   : 2026-03-21
+  Weight : 80.0kg
+  Sets   : 3
+  Reps   : 8
+-----------------------------------------------------
+```
+
+Notes:
+- The exercise name is case-insensitive (`bench press` and `Bench Press` both work).
+- If no matching exercise is found, you will see:
+  `No record found for exercise: Bench Press`
+- Only strength workouts are searched — run workouts are ignored.
+
+---
+
+### Viewing your personal record: `pr`
+
+Displays your personal record for a specific exercise — the highest weight
+ever lifted for a strength exercise, or the longest distance run for a run exercise.
+
+Format: `pr <EXERCISE_NAME>`
+
+Examples:
+- `pr Bench Press`
+- `pr Easy Run`
+
+Expected output (strength):
+```
+-----------------------------------------------------
+Personal Record for: Bench Press
+  Date   : 2026-04-01
+  Weight : 100.0kg
+  Sets   : 3
+  Reps   : 5
+-----------------------------------------------------
+```
+
+Expected output (run):
+```
+-----------------------------------------------------
+Personal Record for: Easy Run
+  Date     : 2026-03-15
+  Distance : 21.1km
+  Duration : 120.0 mins
+-----------------------------------------------------
+```
+
+Notes:
+- The exercise name is case-insensitive.
+- If no matching exercise is found, you will see:
+  `No record found for exercise: Bench Press`
+- For strength exercises, the PR is the entry with the **highest weight**.
+- For run exercises, the PR is the entry with the **longest distance**.
+
+---
+
+### Saving and loading your data
+
+FitLogger automatically saves and loads your data — you do not need to do
+anything manually.
+
+**Saving:**
+- Happens automatically when you type `exit`.
+- All workouts and your profile are written to `data/fitlogger.txt` in the
+  same folder as the app.
+
+**Loading:**
+- Happens automatically when FitLogger starts up.
+- Your previous workouts and profile are fully restored.
+- If the file does not exist yet (first run), FitLogger starts with an empty
+  list — this is expected and not an error.
+
+**If the save file is corrupted:**
+- FitLogger skips the corrupted line and continues loading the rest of your data.
+- A warning is printed for each skipped line:
+  `Warning: Skipping corrupted line 3 in save file: <line content>`
+- Valid entries above and below the corrupted line are still loaded.
+
+> **Note:** Do not manually edit `data/fitlogger.txt`. In particular, avoid
+> using `|` or `/` characters — these are reserved by the storage format and
+> will cause lines to be skipped on load.
 
 ### Exit the app: `exit`
 
@@ -359,4 +456,6 @@ Output:
 | **View Profile** | `profile view` | `profile view` |
 | **Set Profile** | `profile set <field> <value>` | `profile set weight 75` |
 | **Total Mileage** | `view-total-mileage` | `view-total-mileage` |
+| **Last Lift** | `lastlift <EXERCISE_NAME>` | `lastlift Bench Press` |
+| **Personal Record** | `pr <EXERCISE_NAME>` | `pr Bench Press` |
 | **Exit** | `exit` | `exit` |
