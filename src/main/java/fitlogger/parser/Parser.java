@@ -8,6 +8,7 @@ import fitlogger.command.EditCommand;
 import fitlogger.command.ExitCommand;
 import fitlogger.command.HelpCommand;
 import fitlogger.command.SearchDateCommand;
+import fitlogger.command.TrainMuscleCommand;
 import fitlogger.command.UpdateProfileCommand;
 import fitlogger.command.ViewDatabaseCommand;
 import fitlogger.command.ViewHistoryCommand;
@@ -16,6 +17,7 @@ import fitlogger.command.ViewProfileCommand;
 import fitlogger.command.ViewShoeMileageCommand;
 import fitlogger.command.AddShortcutCommand;
 import fitlogger.exception.FitLoggerException;
+import fitlogger.musclegroup.MuscleGroup;
 import fitlogger.workout.RunWorkout;
 import fitlogger.workout.StrengthWorkout;
 import fitlogger.workout.Workout;
@@ -43,6 +45,9 @@ public class Parser {
 
         case "exit":
             return new ExitCommand();
+
+        case "train":
+            return parseTrainMuscle(arguments, dictionary);
 
         case "profile":
             return parseProfile(arguments);
@@ -321,6 +326,22 @@ public class Parser {
         }
 
         return new EditCommand(index, fieldName, newValue);
+    }
+
+    private static Command parseTrainMuscle(String arguments, ExerciseDictionary dictionary)
+            throws FitLoggerException {
+        if (arguments.isBlank()) {
+            throw new FitLoggerException(
+                    "Missing muscle group.\nUsage: train <muscle group>\n"
+                            + "Example: train delts   OR   train upper back");
+        }
+
+        String muscleGroup = arguments.trim().toUpperCase().replace(' ', '_');
+        if (!MuscleGroup.isValid(muscleGroup)) {
+            throw new FitLoggerException("Invalid muscle group.\n" +
+                    "Type 'muscle-groups' to see all available muscle groups");
+        }
+        return new TrainMuscleCommand(MuscleGroup.valueOf(muscleGroup), dictionary);
     }
 
     /**

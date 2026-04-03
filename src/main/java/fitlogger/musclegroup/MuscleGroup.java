@@ -14,5 +14,14 @@ public enum MuscleGroup {
     GLUTES,
     QUADS,
     HAMSTRING,
-    CALVES
+    CALVES;
+
+    public static boolean isValid(String name) {
+        for (MuscleGroup mg : MuscleGroup.values()) {
+            if (mg.name().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
