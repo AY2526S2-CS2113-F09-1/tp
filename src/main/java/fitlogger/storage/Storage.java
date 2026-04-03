@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import fitlogger.exception.FitLoggerException;
+import fitlogger.musclegroup.MuscleGroup;
 import fitlogger.parser.Parser;
 import fitlogger.profile.UserProfile;
 import fitlogger.workout.RunWorkout;
@@ -84,7 +85,8 @@ public class Storage {
 
             if (this.dictionary != null) {
                 for (java.util.Map.Entry<Integer, String> entry : this.dictionary.getLiftShortcuts().entrySet()) {
-                    writer.write("S | lift | " + entry.getKey() + " | " + entry.getValue() + System.lineSeparator());
+                    writer.write(generateLiftString(entry.getKey(), entry.getValue()));
+                    writer.write(System.lineSeparator());
                 }
                 for (java.util.Map.Entry<Integer, String> entry : this.dictionary.getRunShortcuts().entrySet()) {
                     writer.write("S | run | " + entry.getKey() + " | " + entry.getValue() + System.lineSeparator());
@@ -100,6 +102,26 @@ public class Storage {
             System.err.println("Error saving workouts: " + e.getMessage());
             return false;
         }
+    }
+
+    private String generateLiftString(int id, String name) {
+        String base = "S | lift | " + id + " | " + name;
+        if (dictionary == null) {
+            return base;
+        }
+        java.util.Set<MuscleGroup> muscles = dictionary.getMusclesFor(id);
+        if (muscles.isEmpty()) {
+            return base;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (MuscleGroup mg : muscles) {
+            if (!sb.isEmpty()) {
+                sb.append(",");
+            }
+            sb.append(mg.displayName());
+        }
+        return base + " | " + sb;
     }
 
     // ── loadData ─────────────────────────────────────────────────────────────
@@ -262,6 +284,10 @@ public class Storage {
         int id;
         try {
             id = Integer.parseInt(fields[2].trim());
+            if (id < 0) {
+                System.out.println("Warning: ID is negative.");
+                return;
+            }
         } catch (NumberFormatException e) {
             System.out.println("Warning: Invalid shortcut ID format.");
             return;
@@ -272,6 +298,21 @@ public class Storage {
             this.dictionary.addLiftShortcut(id, name);
         } else if (type.equals("run")) {
             this.dictionary.addRunShortcut(id, name);
+        }
+
+        if (fields.length == 5) {
+            //muscle group tags present
+            String muscleField = fields[4].trim();
+            if (muscleField.isEmpty()) {
+                return;
+            }
+            assert this.dictionary.getLiftShortcuts().containsKey(id) : "ID " + id + " not found in dictionary!";
+            for (String rawMuscleGroup : muscleField.split(",")) {
+                String cleanMuscleGroup = rawMuscleGroup.trim().toUpperCase().replace(' ', '_');
+                if (MuscleGroup.isValid(cleanMuscleGroup)) {
+                    this.dictionary.tagMuscles(id, MuscleGroup.valueOf(cleanMuscleGroup));
+                }
+            }
         }
     }
 

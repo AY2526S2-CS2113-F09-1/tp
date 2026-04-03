@@ -7,15 +7,21 @@ import fitlogger.command.DeleteCommand;
 import fitlogger.command.EditCommand;
 import fitlogger.command.ExitCommand;
 import fitlogger.command.HelpCommand;
+import fitlogger.command.LiftMuscleGroupsCommand;
 import fitlogger.command.SearchDateCommand;
+import fitlogger.command.TagMuscleCommand;
+import fitlogger.command.TrainMuscleCommand;
+import fitlogger.command.UntagMuscleCommand;
 import fitlogger.command.UpdateProfileCommand;
 import fitlogger.command.ViewDatabaseCommand;
 import fitlogger.command.ViewHistoryCommand;
 import fitlogger.command.ViewLastLiftCommand;
+import fitlogger.command.ViewMuscleGroupCommand;
 import fitlogger.command.ViewProfileCommand;
 import fitlogger.command.ViewShoeMileageCommand;
 import fitlogger.command.AddShortcutCommand;
 import fitlogger.exception.FitLoggerException;
+import fitlogger.musclegroup.MuscleGroup;
 import fitlogger.workout.RunWorkout;
 import fitlogger.workout.StrengthWorkout;
 import fitlogger.workout.Workout;
@@ -44,6 +50,21 @@ public class Parser {
         case "exit":
             return new ExitCommand();
 
+        case "train":
+            return parseTrainMuscle(arguments, dictionary);
+
+        case "view-muscle-groups":
+            return new ViewMuscleGroupCommand();
+
+        case "muscle-groups":
+            return parseLiftMuscleGroup(arguments, dictionary);
+
+        case "tag-muscle":
+            return parseTagMuscle(arguments, dictionary, true);
+
+        case "untag-muscle":
+            return parseTagMuscle(arguments, dictionary, false);
+
         case "profile":
             return parseProfile(arguments);
 
@@ -68,7 +89,10 @@ public class Parser {
             return new HelpCommand();
 
         case "view-database":
-            return new ViewDatabaseCommand(dictionary);
+            return new ViewDatabaseCommand(dictionary, false);
+
+        case "view-detailed-database":
+            return new ViewDatabaseCommand(dictionary, true);
 
         case "add-shortcut":
             return parseAddShortcut(arguments, dictionary);
@@ -321,6 +345,72 @@ public class Parser {
         }
 
         return new EditCommand(index, fieldName, newValue);
+    }
+
+    private static Command parseTrainMuscle(String arguments, ExerciseDictionary dictionary)
+            throws FitLoggerException {
+        if (arguments.isBlank()) {
+            throw new FitLoggerException(
+                    "Missing muscle group.\nUsage: train <muscle group>\n"
+                            + "Example: train delts   OR   train upper back");
+        }
+
+        String muscleGroup = arguments.trim().toUpperCase().replace(' ', '_');
+        if (!MuscleGroup.isValid(muscleGroup)) {
+            throw new FitLoggerException("Invalid muscle group.\n" +
+                    "Type 'view-muscle-groups' to see all available muscle groups");
+        }
+        return new TrainMuscleCommand(MuscleGroup.valueOf(muscleGroup), dictionary);
+    }
+
+    private static Command parseTagMuscle(String arguments, ExerciseDictionary dictionary, boolean isTag)
+            throws FitLoggerException {
+        String usage = (isTag ? "tag" : "untag") + "-muscle <shortcut-ID> <muscle-group>";
+        if (arguments.isBlank()) {
+            throw new FitLoggerException("Missing arguments.\nUsage: " + usage);
+        }
+        String[] parts = splitInput(arguments, " ", 2);
+        if (parts.length < 2) {
+            throw new FitLoggerException("Invalid format.\nUsage: " + usage);
+        }
+
+        try {
+            int id = Integer.parseInt(parts[0].trim());
+            if (!dictionary.getLiftShortcuts().containsKey(id)) {
+                throw new FitLoggerException("Shortcut does not exist in database.\n" +
+                        "Perform 'view-database' for all available shortcuts");
+            }
+            String muscleGroup = parts[1].trim().toUpperCase().replace(' ', '_');
+            if (!MuscleGroup.isValid(muscleGroup)) {
+                throw new FitLoggerException("Muscle group does not exist in database.\n"+
+                        "Perform 'view-muscle-groups' for all available shortcuts");
+            }
+            if (isTag) {
+                return new TagMuscleCommand(id, MuscleGroup.valueOf(muscleGroup), dictionary);
+            }
+            return new UntagMuscleCommand(id, MuscleGroup.valueOf(muscleGroup), dictionary);
+        } catch (NumberFormatException e) {
+            throw new FitLoggerException("Input a valid shortcut ID.\n" +
+                    "Perform 'view-database' for all available shortcuts");
+        }
+    }
+
+    private static Command parseLiftMuscleGroup(String arguments, ExerciseDictionary dictionary)
+            throws FitLoggerException {
+        if (arguments.isBlank()) {
+            throw new FitLoggerException("Missing arguments.\nUsage: muscle-groups <shortcut_ID>");
+        }
+        try {
+            int id = Integer.parseInt(arguments.trim());
+            if (!dictionary.getLiftShortcuts().containsKey(id)) {
+                throw new FitLoggerException("Shortcut does not exist in database.\n" +
+                        "Perform 'view-database' for all available shortcuts");
+            }
+            return new LiftMuscleGroupsCommand(id, dictionary);
+        } catch (NumberFormatException e) {
+            throw new FitLoggerException("Input a valid shortcut ID.\n" +
+                    "Perform 'view-database' for all available shortcuts");
+        }
     }
 
     /**

@@ -1,11 +1,13 @@
 package fitlogger.ui;
 
+import fitlogger.musclegroup.MuscleGroup;
 import fitlogger.workout.StrengthWorkout;
 import fitlogger.workout.Workout;
 import fitlogger.exercisedictionary.ExerciseDictionary;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 public class Ui {
     private static final String LINE = "-----------------------------------------------------";
@@ -59,9 +61,15 @@ public class Ui {
                 + "    edit <index> <field>/<value>                   "
                 + "Edit field: name/description/weight/sets/reps/distance/duration\n"
                 + "    view-database                                  View exercise shortcuts and their IDs\n"
+                + "    view-detailed-database                         View exercise shortcuts, IDs, and muscle groups\n"
                 + "    add-shortcut <lift/run> <ID> <name>            Add a custom exercise shortcut\n"
                 + "    view-total-mileage                             View total distance ran across all run workouts\n"
                 + "    lastlift <EXERCISE_NAME>                       View most recent lift for an exercise\n"
+                + "    view-muscle-groups                             View all available muscle groups\n"
+                + "    muscle-groups <shortcut_ID>                    View all muscle groups for a specific exercise\n"
+                + "    tag-muscle <shortcut_ID> <muscle>              Tag muscle groups to a shortcut\n"
+                + "    untag-muscle <shortcut_ID> <muscle>            Remove muscle group tags\n"
+                + "    train <muscle>                                 List exercises targeting that muscle\n"
                 + "    history                                        View all logged workouts\n"
                 + "    delete <index>                                 Delete workout by number\n"
                 + "    search-date <YYYY-MM-DD>                       View workouts completed on a date\n"
@@ -93,10 +101,22 @@ public class Ui {
         }
     }
 
-    public void showExerciseDatabase(ExerciseDictionary dictionary) {
+    public void showExerciseDatabase(ExerciseDictionary dictionary, boolean isDetailed) {
         showMessage("Strength Shortcuts:");
         for (java.util.Map.Entry<Integer, String> entry : dictionary.getLiftShortcuts().entrySet()) {
-            showMessage("  [" + entry.getKey() + "] -> " + entry.getValue());
+            int id = entry.getKey();
+            showMessageNoNewline("  [" + id + "] -> " + entry.getValue());
+
+            Set<MuscleGroup> muscles = dictionary.getMusclesFor(id);
+            if (isDetailed) {
+                if (muscles.isEmpty()) {
+                    showMessage(" (Muscles: no muscles currently tagged)");
+                } else {
+                    showMessage(" (Muscles: " + muscles + ")");
+                }
+            } else {
+                showMessage("");
+            }
         }
         showMessage("");
         showMessage("Run Shortcuts:");
@@ -104,6 +124,19 @@ public class Ui {
             showMessage("  [" + entry.getKey() + "] -> " + entry.getValue());
         }
         showLine();
+    }
+
+    public void showMuscleGroups() {
+        showMessage("Here are all available muscle groups: ");
+        MuscleGroup[] groups = MuscleGroup.values();
+        for (int i = 0; i < groups.length; i++) {
+            showMessageNoNewline(groups[i].displayName());
+            if (i != groups.length - 1) {
+                //don't show comma on the last element
+                showMessageNoNewline(", ");
+            }
+        }
+        showMessage("");
     }
 
     /**
