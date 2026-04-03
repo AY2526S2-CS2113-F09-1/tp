@@ -1,0 +1,23 @@
+@startuml
+participant ":FitLogger" as FL
+participant ":ExitCommand" as CMD
+participant ":Storage" as ST
+participant ":FileWriter" as FW
+participant ":WorkoutList" as WL
+
+FL -> CMD : execute(storage, workouts, ui, profile)
+CMD -> WL : getWorkouts()
+WL --> CMD : List<Workout>
+CMD -> ST : saveData(workouts, profile)
+ST -> ST : check/create data/ directory
+ST -> FW : new FileWriter(file)
+ST -> FW : write(profile.toFileFormat())
+loop for each workout
+    ST -> WL : workout.toFileFormat()
+    WL --> ST : formatted string
+    ST -> FW : write(line)
+end
+FW --> ST : close
+ST --> CMD : done
+CMD -> FL : showGoodbye()
+@enduml

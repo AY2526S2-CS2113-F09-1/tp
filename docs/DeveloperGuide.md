@@ -747,6 +747,198 @@ If save fails, the app now shows clear error messages instead of always implying
 
 ---
 
+### Enhancement 10: `Storage` — `saveData()` and `loadData()`
+
+#### Purpose and user value
+`Storage` persists workout data between sessions. `saveData()` writes all workouts
+to disk on exit so no data is lost. `loadData()` reconstructs the workout list on
+startup so users resume exactly where they left off.
+
+#### Design overview
+
+At the architecture level, `Storage` sits between the command layer and the file system:
+
+1. `ExitCommand.execute(...)` calls `storage.saveData(workouts, profile)` on exit.
+2. `FitLogger()` constructor calls `storage.loadData(profile)` on startup.
+3. Both methods operate on `data/fitlogger.txt`, creating the `data/` directory
+   automatically if it does not exist.
+
+#### saveData() — Sequence of events
+
+![SaveDataSequenceDiagram](diagrams/SaveDataSequenceDiagram.png)
+
+`saveData()` performs the following steps:
+
+1. Assert that the workout list is not null.
+2. Check if the `data/` directory exists — create it via `mkdirs()` if not.
+3. Open a `FileWriter` on `data/fitlogger.txt`.
+4. Write the user profile as the first line using `profile.toFileFormat()`.
+5. Loop through each `Workout` and write `workout.toFileFormat()` on its own line.
+6. Close the writer automatically via try-with-resources.
+7. Print an error message if an `IOException` occurs.
+
+#### loadData() — Sequence of events
+
+![LoadDataSequenceDiagram](diagrams/LoadDataSequenceDiagram.png)
+
+`loadData()` performs the following steps:
+
+1. Check if `data/fitlogger.txt` exists — return an empty list silently if not
+   (expected on first run).
+2. Open a `Scanner` on the file.
+3. Read line 1 as the user profile via `parseProfile(line, profile)`.
+4. For each subsequent line:
+    - Skip blank lines.
+    - Split on `|` to extract fields.
+    - Dispatch by type prefix: `R` → `parseRunWorkout(fields)`,
+      `L` → `parseStrengthWorkout(fields)`.
+    - On corrupted lines, print a warning and skip.
+5. Return the reconstructed `List<Workout>`.
+
+#### Storage file format
+```
+name: John height: 1.75 weight: 70.0
+R | Morning Jog | 2026-03-21 | 5.0 | 30.0
+L | Bench Press | 2026-03-21 | 80.0 | 3 | 8
+```
+
+Line 1 is always the user profile. Each subsequent line is one workout entry,
+prefixed by `R` (run) or `L` (lift).
+
+#### Design considerations
+
+**Aspect: File format**
+- **Current choice: pipe-separated plain text**
+    - Pros: Human-readable, easy to debug manually, no external libraries needed.
+    - Cons: Reserved characters (`|`, `/`) must be blocked from user input to
+      prevent corruption. This is enforced in `Parser.validateNoStorageDelimiters(...)`.
+- **Alternative: JSON or CSV**
+    - Pros: Well-supported parsing libraries available.
+    - Cons: Adds external dependencies and complexity for a CLI app of this scope.
+
+**Aspect: Handling corrupted lines**
+- **Current choice: skip and warn** — corrupted lines print a warning and are
+  skipped, allowing valid entries below to still load.
+- **Alternative: abort on first error** — simpler but loses all valid data
+  below the corrupted line.
+
+---
+
+### Enhancement 11: `ViewLastLiftCommand`
+
+#### Purpose and user value
+`ViewLastLiftCommand` lets users instantly retrieve the most recent stats for a
+specific lift exercise without scrolling through their full history. This is
+useful before a gym session to check the last weight, sets, and reps logged.
+
+Command format:
+```
+lastlift <EXERCISE_NAME>
+```
+
+Example: `lastlift Bench Press`
+
+#### Class-level design
+
+![ViewLastLiftClassDiagram](diagrams/ViewLastLiftClassDiagram.png)
+
+`ViewLastLiftCommand` extends the abstract `Command` base class and holds the
+target `exerciseId` as its only state. It depends on `WorkoutList` to search
+through entries and `Ui` to display results. It does not modify any state —
+it is a pure read operation.
+
+#### Sequence of events
+
+![ViewLastLiftSequenceDiagram](diagrams/ViewLastLiftSequenceDiagram.png)
+
+`ViewLastLiftCommand.execute(...)` performs the following steps:
+
+1. Assert that `workouts` and `exerciseId` are not null.
+2. Check that `exerciseId` is not blank — show usage hint if so.
+3. Loop from `workouts.getSize() - 1` down to `0`.
+4. For each entry, check if it is an `instanceof StrengthWorkout` and if its
+   description matches `exerciseId` (case-insensitive).
+5. On first match, call `ui.showLastLift(lift)` and return immediately.
+6. If no match is found after the full loop, call `ui.showMessage("No record found...")`.
+
+#### Design considerations
+
+**Aspect: Search direction**
+- **Current choice: reverse order** — searching from the end of the list finds
+  the most recent entry first without scanning the entire list unnecessarily.
+- **Alternative: forward order with tracking** — scan all entries and keep
+  updating a reference to the latest match. Finds the same result but always
+  scans the entire list.
+
+**Aspect: Match criteria**
+- **Current choice: case-insensitive description match** — simple and consistent
+  with how exercise names are displayed and typed by users.
+- **Alternative: match by numeric shortcut ID** — faster lookup but requires
+  the user to remember IDs, which is less intuitive for a retrieval command.
+
+---
+
+### Enhancement 12: `ViewPrCommand`
+
+#### Purpose and user value
+`ViewPrCommand` finds and displays a user's personal record for a specific
+exercise — the highest weight ever lifted for a strength exercise, or the
+longest distance run for a run exercise. This gives users a motivational
+milestone to track their progress against over time.
+
+Command format:
+```
+pr <EXERCISE_NAME>
+```
+
+Example: `pr Bench Press`
+
+#### Class-level design
+
+![ViewPrClassDiagram](diagrams/ViewPrClassDiagram.png)
+
+`ViewPrCommand` extends the abstract `Command` base class. Like
+`ViewLastLiftCommand`, it holds only `exerciseId` as state and is a pure
+read operation. It differs in that it scans the **entire** list rather than
+stopping at the first match, in order to find the maximum value.
+
+#### Sequence of events
+
+![ViewPrSequenceDiagram](diagrams/ViewPrSequenceDiagram.png)
+
+`ViewPrCommand.execute(...)` performs the following steps:
+
+1. Assert that `workouts` and `exerciseId` are not null.
+2. Check that `exerciseId` is not blank — show usage hint if so.
+3. Initialise `prWorkout = null` and `maxValue = 0.0`.
+4. Loop through all entries from index `0` to `workouts.getSize() - 1`.
+5. For each entry whose description matches `exerciseId` (case-insensitive):
+    - If it is a `StrengthWorkout` and `getWeight() > maxValue`, update `prWorkout`
+      and `maxValue`.
+    - If it is a `RunWorkout` and `getDistance() > maxValue`, update `prWorkout`
+      and `maxValue`.
+6. If `prWorkout != null`, call `ui.showPr(prWorkout)`.
+7. Otherwise call `ui.showMessage("No record found...")`.
+
+#### Design considerations
+
+**Aspect: How to find the PR**
+- **Current choice: linear scan of WorkoutList**
+    - Pros: Simple, no extra data structures needed. `WorkoutList` is not
+      expected to grow large enough to require optimisation.
+    - Cons: O(n) per query.
+- **Alternative: maintain a separate PR map** — a `HashMap<String, Double>`
+  updated on every `add-lift` or `add-run`.
+    - Pros: O(1) lookup.
+    - Cons: Extra state to maintain and persist. Adds complexity for minimal
+      gain at current scale.
+
+**Aspect: PR metric per workout type**
+- Strength workouts use **weight** as the PR metric.
+- Run workouts use **distance** as the PR metric.
+- This decision keeps the PR definition intuitive — heavier lift = better PR
+  for strength; longer run = better PR for endurance.
+
 ### Notes for team writeups
 
 ### Command Architecture

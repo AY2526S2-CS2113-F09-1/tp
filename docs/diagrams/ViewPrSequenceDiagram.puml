@@ -1,0 +1,29 @@
+@startuml
+actor User
+participant ":FitLogger" as FL
+participant ":Parser" as P
+participant ":ViewPrCommand" as CMD
+participant ":WorkoutList" as WL
+participant ":Ui" as UI
+
+User -> FL : pr Bench Press
+FL -> P : parse(...)
+P --> FL : ViewPrCommand("Bench Press")
+FL -> CMD : execute(storage, workouts, ui, profile)
+CMD -> WL : getSize()
+loop i from 0 to size-1
+    CMD -> WL : getWorkoutAtIndex(i)
+    WL --> CMD : workout
+    alt name matches and is StrengthWorkout
+        CMD -> CMD : track if weight > currentMax
+    else name matches and is RunWorkout
+        CMD -> CMD : track if distance > currentMax
+    end
+end
+alt PR found
+    CMD -> UI : showPr(prWorkout)
+    UI --> User : displays PR stats
+else no match found
+    CMD -> UI : showMessage("No record found...")
+end
+@enduml

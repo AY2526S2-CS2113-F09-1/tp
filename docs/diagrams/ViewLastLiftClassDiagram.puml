@@ -1,0 +1,36 @@
+@startuml
+abstract class Command {
+    +execute(storage, workouts, ui, profile)
+    +isExit() : boolean
+}
+
+class ViewLastLiftCommand {
+    -exerciseId : String
+    +ViewLastLiftCommand(exerciseId)
+    +execute(storage, workouts, ui, profile)
+}
+
+class WorkoutList {
+    +getSize() : int
+    +getWorkoutAtIndex(index) : Workout
+}
+
+class StrengthWorkout {
+    -weight : double
+    -sets : int
+    -reps : int
+    +getWeight() : double
+    +getSets() : int
+    +getReps() : int
+}
+
+class Ui {
+    +showLastLift(lift : StrengthWorkout)
+    +showMessage(message : String)
+}
+
+Command <|-- ViewLastLiftCommand
+ViewLastLiftCommand --> WorkoutList
+ViewLastLiftCommand --> Ui
+WorkoutList --> StrengthWorkout
+@enduml
