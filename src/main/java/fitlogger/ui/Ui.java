@@ -7,6 +7,7 @@ import fitlogger.exercisedictionary.ExerciseDictionary;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 public class Ui {
     private static final String LINE = "-----------------------------------------------------";
@@ -60,6 +61,7 @@ public class Ui {
                 + "    edit <index> <field>/<value>                   "
                 + "Edit field: name/description/weight/sets/reps/distance/duration\n"
                 + "    view-database                                  View exercise shortcuts and their IDs\n"
+                + "    view-detailed-database                         View exercise shortcuts, IDs, and muscle groups\n"
                 + "    add-shortcut <lift/run> <ID> <name>            Add a custom exercise shortcut\n"
                 + "    view-total-mileage                             View total distance ran across all run workouts\n"
                 + "    lastlift <EXERCISE_NAME>                       View most recent lift for an exercise\n"
@@ -99,10 +101,22 @@ public class Ui {
         }
     }
 
-    public void showExerciseDatabase(ExerciseDictionary dictionary) {
+    public void showExerciseDatabase(ExerciseDictionary dictionary, boolean isDetailed) {
         showMessage("Strength Shortcuts:");
         for (java.util.Map.Entry<Integer, String> entry : dictionary.getLiftShortcuts().entrySet()) {
-            showMessage("  [" + entry.getKey() + "] -> " + entry.getValue());
+            int id = entry.getKey();
+            showMessageNoNewline("  [" + id + "] -> " + entry.getValue());
+
+            Set<MuscleGroup> muscles = dictionary.getMusclesFor(id);
+            if (isDetailed) {
+                if (muscles.isEmpty()) {
+                    showMessage(" (Muscles: no muscles currently tagged)");
+                } else {
+                    showMessage(" (Muscles: " + muscles + ")");
+                }
+            } else {
+                showMessage("");
+            }
         }
         showMessage("");
         showMessage("Run Shortcuts:");

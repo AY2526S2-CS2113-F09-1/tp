@@ -89,7 +89,10 @@ public class Parser {
             return new HelpCommand();
 
         case "view-database":
-            return new ViewDatabaseCommand(dictionary);
+            return new ViewDatabaseCommand(dictionary, false);
+
+        case "view-detailed-database":
+            return new ViewDatabaseCommand(dictionary, true);
 
         case "add-shortcut":
             return parseAddShortcut(arguments, dictionary);
