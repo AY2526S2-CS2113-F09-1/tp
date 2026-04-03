@@ -24,4 +24,8 @@ public enum MuscleGroup {
         }
         return false;
     }
+
+    public String displayName() {
+        return name().toLowerCase().replace('_', ' ');
+    }
 }
