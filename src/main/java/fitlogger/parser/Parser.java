@@ -7,15 +7,21 @@ import fitlogger.command.DeleteCommand;
 import fitlogger.command.EditCommand;
 import fitlogger.command.ExitCommand;
 import fitlogger.command.HelpCommand;
+import fitlogger.command.LiftMuscleGroupsCommand;
 import fitlogger.command.SearchDateCommand;
+import fitlogger.command.TagMuscleCommand;
+import fitlogger.command.TrainMuscleCommand;
+import fitlogger.command.UntagMuscleCommand;
 import fitlogger.command.UpdateProfileCommand;
 import fitlogger.command.ViewDatabaseCommand;
 import fitlogger.command.ViewHistoryCommand;
 import fitlogger.command.ViewLastLiftCommand;
+import fitlogger.command.ViewMuscleGroupCommand;
 import fitlogger.command.ViewProfileCommand;
 import fitlogger.command.ViewShoeMileageCommand;
 import fitlogger.command.AddShortcutCommand;
 import fitlogger.exception.FitLoggerException;
+import fitlogger.musclegroup.MuscleGroup;
 import fitlogger.workout.RunWorkout;
 import fitlogger.workout.StrengthWorkout;
 import fitlogger.workout.Workout;
@@ -27,8 +33,8 @@ import java.time.format.DateTimeParseException;
 
 public class Parser {
 
-    public static Command parse(String fullCommand, WorkoutList workouts, ExerciseDictionary dictionary)
-            throws FitLoggerException {
+    public static Command parse(String fullCommand, WorkoutList workouts,
+            ExerciseDictionary dictionary) throws FitLoggerException {
         assert fullCommand != null : "Parser.parse was called with a null string!";
         String[] parts = splitInput(fullCommand, " ", 2);
         String commandWord = parts[0].toLowerCase();
@@ -43,6 +49,21 @@ public class Parser {
 
         case "exit":
             return new ExitCommand();
+
+        case "train":
+            return parseTrainMuscle(arguments, dictionary);
+
+        case "view-muscle-groups":
+            return new ViewMuscleGroupCommand();
+
+        case "muscle-groups":
+            return parseLiftMuscleGroup(arguments, dictionary);
+
+        case "tag-muscle":
+            return parseTagMuscle(arguments, dictionary, true);
+
+        case "untag-muscle":
+            return parseTagMuscle(arguments, dictionary, false);
 
         case "profile":
             return parseProfile(arguments);
@@ -68,11 +89,14 @@ public class Parser {
             return new HelpCommand();
 
         case "view-database":
-            return new ViewDatabaseCommand(dictionary);
+            return new ViewDatabaseCommand(dictionary, false);
+
+        case "view-detailed-database":
+            return new ViewDatabaseCommand(dictionary, true);
 
         case "add-shortcut":
             return parseAddShortcut(arguments, dictionary);
-            
+
         case "lastlift":
             return new ViewLastLiftCommand(arguments);
 
@@ -94,8 +118,8 @@ public class Parser {
      * @throws FitLoggerException if arguments are missing, malformed, or contain illegal storage
      *         characters.
      */
-    private static Command parseAddRun(String arguments, WorkoutList workouts, ExerciseDictionary dictionary)
-            throws FitLoggerException {
+    private static Command parseAddRun(String arguments, WorkoutList workouts,
+            ExerciseDictionary dictionary) throws FitLoggerException {
         if (arguments.isBlank()) {
             throw new FitLoggerException("Missing arguments for add-run.\n"
                     + "Usage: add-run <name_or_id> d/<distanceKm> t/<durationMinutes>");
@@ -128,7 +152,7 @@ public class Parser {
         double distance;
         double durationMinutes;
         try {
-            //check if d/comes before t/
+            // check if d/comes before t/
             String[] checkDataIntegrity = splitInput(arguments.trim(), "d/", 0);
             if (checkDataIntegrity[0].contains("t/")) {
                 throw new FitLoggerException("Invalid format for add-run.\n"
@@ -169,8 +193,8 @@ public class Parser {
      * @throws FitLoggerException if arguments are missing, malformed, or contain illegal storage
      *         characters.
      */
-    private static Command parseAddLift(String arguments, WorkoutList workouts, ExerciseDictionary dictionary)
-            throws FitLoggerException {
+    private static Command parseAddLift(String arguments, WorkoutList workouts,
+            ExerciseDictionary dictionary) throws FitLoggerException {
         if (arguments.isBlank()) {
             throw new FitLoggerException("Missing arguments for add-lift.\n"
                     + "Usage: add-lift <name_or_id> w/<weightKg> s/<sets> r/<reps>");
@@ -189,8 +213,9 @@ public class Parser {
             String dictionaryName = dictionary.getLiftName(shortcutId);
 
             if (dictionaryName == null) {
-                throw new FitLoggerException("Shortcut ID [" + shortcutId + "] does not exist in the database. "
-                        + "Type 'view-database' to see available shortcuts.");
+                throw new FitLoggerException(
+                        "Shortcut ID [" + shortcutId + "] does not exist in the database. "
+                                + "Type 'view-database' to see available shortcuts.");
             }
             name = dictionaryName;
 
@@ -204,7 +229,7 @@ public class Parser {
         int sets;
         int reps;
         try {
-            //check if correct order
+            // check if correct order
             String[] checkDataIntegrity = splitInput(arguments.trim(), "s/", 2);
             if (!checkDataIntegrity[0].contains("w/") || !checkDataIntegrity[1].contains("r/")) {
                 throw new FitLoggerException("Invalid format for add-lift.\n"
@@ -236,15 +261,15 @@ public class Parser {
     private static Command parseAddShortcut(String arguments, ExerciseDictionary dictionary)
             throws FitLoggerException {
         if (arguments.isBlank()) {
-            throw new FitLoggerException("Missing arguments.\n"
-                    + "Usage: add-shortcut <lift/run> <ID> <Exercise Name>");
+            throw new FitLoggerException(
+                    "Missing arguments.\n" + "Usage: add-shortcut <lift/run> <ID> <Exercise Name>");
         }
 
         // Split into exactly 3 parts: type, ID, and the rest is the name
         String[] parts = splitInput(arguments, " ", 3);
         if (parts.length < 3) {
-            throw new FitLoggerException("Invalid format.\n"
-                    + "Usage: add-shortcut <lift/run> <ID> <Exercise Name>");
+            throw new FitLoggerException(
+                    "Invalid format.\n" + "Usage: add-shortcut <lift/run> <ID> <Exercise Name>");
         }
 
         String type = parts[0].toLowerCase();
@@ -322,10 +347,78 @@ public class Parser {
         return new EditCommand(index, fieldName, newValue);
     }
 
+    private static Command parseTrainMuscle(String arguments, ExerciseDictionary dictionary)
+            throws FitLoggerException {
+        if (arguments.isBlank()) {
+            throw new FitLoggerException(
+                    "Missing muscle group.\nUsage: train <muscle group>\n"
+                            + "Example: train delts   OR   train upper back");
+        }
+
+        String muscleGroup = arguments.trim().toUpperCase().replace(' ', '_');
+        if (!MuscleGroup.isValid(muscleGroup)) {
+            throw new FitLoggerException("Invalid muscle group.\n" +
+                    "Type 'view-muscle-groups' to see all available muscle groups");
+        }
+        return new TrainMuscleCommand(MuscleGroup.valueOf(muscleGroup), dictionary);
+    }
+
+    private static Command parseTagMuscle(String arguments, ExerciseDictionary dictionary, boolean isTag)
+            throws FitLoggerException {
+        String usage = (isTag ? "tag" : "untag") + "-muscle <shortcut-ID> <muscle-group>";
+        if (arguments.isBlank()) {
+            throw new FitLoggerException("Missing arguments.\nUsage: " + usage);
+        }
+        String[] parts = splitInput(arguments, " ", 2);
+        if (parts.length < 2) {
+            throw new FitLoggerException("Invalid format.\nUsage: " + usage);
+        }
+
+        try {
+            int id = Integer.parseInt(parts[0].trim());
+            if (!dictionary.getLiftShortcuts().containsKey(id)) {
+                throw new FitLoggerException("Shortcut does not exist in database.\n" +
+                        "Perform 'view-database' for all available shortcuts");
+            }
+            String muscleGroup = parts[1].trim().toUpperCase().replace(' ', '_');
+            if (!MuscleGroup.isValid(muscleGroup)) {
+                throw new FitLoggerException("Muscle group does not exist in database.\n"+
+                        "Perform 'view-muscle-groups' for all available shortcuts");
+            }
+            if (isTag) {
+                return new TagMuscleCommand(id, MuscleGroup.valueOf(muscleGroup), dictionary);
+            }
+            return new UntagMuscleCommand(id, MuscleGroup.valueOf(muscleGroup), dictionary);
+        } catch (NumberFormatException e) {
+            throw new FitLoggerException("Input a valid shortcut ID.\n" +
+                    "Perform 'view-database' for all available shortcuts");
+        }
+    }
+
+    private static Command parseLiftMuscleGroup(String arguments, ExerciseDictionary dictionary)
+            throws FitLoggerException {
+        if (arguments.isBlank()) {
+            throw new FitLoggerException("Missing arguments.\nUsage: muscle-groups <shortcut_ID>");
+        }
+        try {
+            int id = Integer.parseInt(arguments.trim());
+            if (!dictionary.getLiftShortcuts().containsKey(id)) {
+                throw new FitLoggerException("Shortcut does not exist in database.\n" +
+                        "Perform 'view-database' for all available shortcuts");
+            }
+            return new LiftMuscleGroupsCommand(id, dictionary);
+        } catch (NumberFormatException e) {
+            throw new FitLoggerException("Input a valid shortcut ID.\n" +
+                    "Perform 'view-database' for all available shortcuts");
+        }
+    }
+
     /**
      * Parses a search-date command.
      *
-     * <p>Expected format: {@code search-date <YYYY-MM-DD>}</p>
+     * <p>
+     * Expected format: {@code search-date <YYYY-MM-DD>}
+     * </p>
      *
      * @param arguments Everything after {@code search-date }.
      * @return A {@link SearchDateCommand} for the parsed date.
@@ -347,9 +440,8 @@ public class Parser {
 
     private static Command parseProfile(String arguments) throws FitLoggerException {
         if (arguments.isBlank()) {
-            throw new FitLoggerException(
-                    "Missing arguments for viewing/setting up profile.\n"
-                            + "Usage: profile view OR profile set <field> <value>");
+            throw new FitLoggerException("Missing arguments for viewing/setting up profile.\n"
+                    + "Usage: profile view OR profile set <field> <value>");
         }
         String[] info = splitInput(arguments, " ", 3);
         assert info.length > 0 : "Profile arguments are missing";
@@ -357,7 +449,7 @@ public class Parser {
         try {
             switch (info[0].toLowerCase()) {
             case "view":
-                //ignores all entries after it
+                // ignores all entries after it
                 return new ViewProfileCommand();
             case "set":
                 if (info.length < 2) {
@@ -379,16 +471,16 @@ public class Parser {
                     updatedHeightOrWeight = updateHeightOrWeight(info[2], 10, 500);
                     return new UpdateProfileCommand(null, -1, updatedHeightOrWeight);
                 default:
-                    throw new FitLoggerException("Invalid field provided. \n"
-                            + "Available fields: name / height / weight");
+                    throw new FitLoggerException("Invalid profile action. \n"
+                            + "Usage: profile view OR profile set <field> <value>");
                 }
             default:
                 throw new FitLoggerException("Invalid profile action. \n"
                         + "Usage: profile view OR profile set <field> <value>");
             }
         } catch (IndexOutOfBoundsException e) {
-            throw new FitLoggerException("No value provided. \n"
-                    + "Please provide a value to be updated.");
+            throw new FitLoggerException(
+                    "No value provided. \n" + "Please provide a value to be updated.");
         }
     }
 
@@ -397,8 +489,8 @@ public class Parser {
         try {
             double newValue = Double.parseDouble(value);
             if (newValue < lowerBound || newValue > upperBound) {
-                throw new FitLoggerException("Your Height/Weight is unrealistically low/high.\n" +
-                        "Please ensure your values are correctly, height in m and weight in Kg");
+                throw new FitLoggerException("Your Height/Weight is unrealistically low/high.\n"
+                        + "Please ensure your values are correctly, height in m and weight in Kg");
             }
             return newValue;
         } catch (NumberFormatException e) {

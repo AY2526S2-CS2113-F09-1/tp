@@ -18,7 +18,8 @@ public class ViewShoeMileageCommand extends Command {
                 runWorkoutCount++;
             }
         }
+        String pluralOrSingular = runWorkoutCount == 1 ? " run." : " runs.";
         ui.showMessage("Your total distance ran is " + String.format("%.2fkm", totalMileage) +
-                " across " + runWorkoutCount + " runs.");
+                " across " + runWorkoutCount + pluralOrSingular);
     }
 }
