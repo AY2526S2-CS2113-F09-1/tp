@@ -138,7 +138,7 @@ Sample output:
 `Updated workout 2: [Run] Easy Run (Date: 2026-04-02) (Distance: 3.0km, Duration: 3.0 mins)`
 
 Editable fields:
-- For all workouts: `name`, `description`
+- For all workouts: `name`
 - For run workouts: `distance`, `duration`
 - For lift workouts: `weight`, `sets`, `reps`
 
@@ -209,7 +209,12 @@ Example:
 - `search-date 2026-03-15`
 
 Sample output when matches exist:
-`Workouts on 2026-03-15:`
+```
+Workouts on 2026-03-15:
+-----------------------------------------------------
+1. [Run] Morning Run (Date: 2026-03-15) (Distance: 5.0km, Duration: 30.0 mins)
+-----------------------------------------------------
+```
 
 Sample output when no matches exist:
 `No workouts found.`

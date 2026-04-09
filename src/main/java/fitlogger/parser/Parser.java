@@ -45,7 +45,7 @@ public class Parser {
 
         switch (commandWord) {
         case "delete":
-            return new DeleteCommand(arguments);
+            return parseDelete(arguments);
 
         case "search-date":
             return parseSearchDate(arguments);
@@ -75,7 +75,7 @@ public class Parser {
             return new ViewShoeMileageCommand();
 
         case "edit":
-            return parseEdit(arguments, workouts);
+            return parseEdit(arguments);
 
         case "add-run":
             return parseAddRun(arguments, workouts, dictionary);
@@ -315,8 +315,7 @@ public class Parser {
      * @return An {@link EditCommand} that updates one workout field.
      * @throws FitLoggerException if arguments are missing or malformed.
      */
-    private static Command parseEdit(String arguments, WorkoutList workouts)
-            throws FitLoggerException {
+    private static Command parseEdit(String arguments) throws FitLoggerException {
         if (arguments.isBlank()) {
             throw new FitLoggerException(
                     "Missing arguments for edit.\n" + "Usage: edit <index> <field>/<value>");
@@ -354,6 +353,37 @@ public class Parser {
         }
 
         return new EditCommand(index, fieldName, newValue);
+    }
+
+    /**
+     * Parses a delete command.
+     *
+     * <p>
+     * Expected format: {@code delete <index>}
+     * </p>
+     *
+     * @param arguments Everything after {@code delete }.
+     * @return A {@link DeleteCommand} for the parsed one-based index.
+     * @throws FitLoggerException if the index is missing or not a positive integer.
+     */
+    private static Command parseDelete(String arguments) throws FitLoggerException {
+        if (arguments.isBlank()) {
+            throw new FitLoggerException(
+                    "Please specify a workout index to delete. Usage: delete <index>");
+        }
+
+        final int oneBasedIndex;
+        try {
+            oneBasedIndex = Integer.parseInt(arguments.trim());
+        } catch (NumberFormatException exception) {
+            throw new FitLoggerException("Workout index must be a positive integer.");
+        }
+
+        if (oneBasedIndex <= 0) {
+            throw new FitLoggerException("Workout index must be a positive integer.");
+        }
+
+        return new DeleteCommand(oneBasedIndex);
     }
 
     private static Command parseTrainMuscle(String arguments, ExerciseDictionary dictionary)

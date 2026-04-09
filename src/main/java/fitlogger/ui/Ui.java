@@ -61,7 +61,7 @@ public class Ui {
                 + "    add-run <name_or_id> d/<distKm> t/<mins>       Log a run\n"
                 + "    add-lift <name_or_id> w/<kg> s/<sets> r/<reps> Log a lift workout\n"
                 + "    edit <index> <field>/<value>                   "
-                + "Edit field: name/description/weight/sets/reps/distance/duration\n"
+                + "Edit field: name/weight/sets/reps/distance/duration\n"
                 + "    view-database                                  View exercise shortcuts and their IDs\n"
                 + "    view-detailed-database                         View exercise shortcuts, IDs, and muscle groups\n"
                 + "    add-shortcut <lift/run> <ID> <name>            Add a custom exercise shortcut\n"

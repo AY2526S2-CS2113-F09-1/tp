@@ -38,10 +38,10 @@ The following sequence diagram illustrates the internal logic of the `Parser` wh
 
 `EditCommand` lets users modify an existing workout entry without deleting and recreating it.
 This reduces friction when correcting common input mistakes (for example, wrong distance, duration,
-sets, reps, weight, name, or description) while preserving the original workout ordering.
+sets, reps, weight, or name) while preserving the original workout ordering.
 
 Supported fields:
-- For all workouts: `name`, `description`
+- For all workouts: `name`
 - For run workouts: `distance`, `duration`
 - For strength workouts: `weight`, `sets`, `reps`
 
@@ -71,6 +71,16 @@ Responsibilities remain clearly separated:
 - Command handles *execution logic and field dispatch*.
 - Workout classes enforce *domain invariants* through setter validation.
 
+Internally, the shared text field in `Workout` is still stored as `description`, but it represents a
+single user-facing workout name. `EditCommand` therefore documents `name` as the canonical field and
+accepts `description` only as a backward-compatible alias.
+
+#### UML diagrams
+
+![EditCommandClassDiagram](images/EditCommandClassDiagram.png)
+
+![EditCommandSequenceDiagram](images/EditCommandSequenceDiagram.png)
+
 #### Component-level behavior
 
 `EditCommand.execute(...)` performs the following steps:
@@ -91,14 +101,14 @@ The command is intentionally defensive:
 - Non-numeric numeric inputs are rejected.
 - Invalid domain values are rejected via `FitLoggerException`.
 - Save failure path is handled explicitly (error is shown, success message is not shown).
-- Name/description edits are validated against reserved storage delimiters (`|` and `/`) to 
+- Workout name edits are validated against reserved storage delimiters (`|` and `/`) to 
 prevent save-file corruption.
 
 #### Data integrity and validation decisions
 
 Key safeguards:
 
-- **Delimiter safety**: edited names/descriptions are rejected when they contain reserved storage separators.
+- **Delimiter safety**: edited workout names are rejected when they contain reserved storage separators.
 - **Finite numeric values**: `NaN` and `Infinity` are rejected for distance, duration, and weight.
 - **Domain constraints**:
   - distance, duration > 0
@@ -152,24 +162,24 @@ Supported formats:
 
 The command is intentionally simple and cohesive:
 
-1. Parser identifies the `delete` command and passes the raw argument string.
-2. `DeleteCommand` stores the user-supplied index text.
-3. During execution, the command validates the text as a positive one-based index.
+1. Parser identifies the `delete` command and validates the argument as a positive one-based index.
+2. `DeleteCommand` stores the parsed index as command state.
+3. During execution, the command checks only runtime concerns such as index bounds and persistence.
 4. If the index is valid, the workout is removed from `WorkoutList`; otherwise, user sees validation feedback.
 
 This design keeps parsing and command behavior focused while preserving compatibility with the existing pipeline.
+
+#### UML diagrams
+
+![DeleteCommandClassDiagram](images/DeleteCommandClassDiagram.png)
+
+![DeleteCommandSequenceDiagram](images/DeleteCommandSequenceDiagram.png)
 
 #### Component-level behavior
 
 `DeleteCommand.execute(...)` performs:
 
-1. Empty input check:
-	- If blank, show usage guidance and return early.
-2. Index parsing and validation:
-  - Trim the input and parse it as a positive integer.
-  - If parsing fails, show `Workout index must be a positive integer.`
-  - If the parsed index is less than 1, show `Invalid workout index: <index>`.
-3. Deletion:
+1. Deletion:
   - Convert the one-based index to a zero-based list index.
   - If the zero-based index is out of range, show `Invalid workout index: <index>`.
   - Otherwise, delete the workout and show `Deleted workout: <name>`.
@@ -178,21 +188,23 @@ This approach avoids ambiguity and keeps deletion behavior predictable.
 
 #### Edge cases handled
 
-- Blank target text.
-- Non-numeric text.
-- Zero or negative indices.
 - Out-of-range indices larger than the current workout list size.
+- Save failure after a successful in-memory deletion.
 
 #### Testing strategy
 
 `DeleteCommandTest` verifies:
 
 - Index-based deletion success (one-based input behavior).
+- Out-of-range index handling at execution time.
+- Save is attempted only after a valid deletion.
+- Save failure path shows an error and suppresses deletion success message.
+
+`ParserTest` covers the syntax-level delete validation:
+
 - Blank-input usage message.
 - Rejection of non-numeric input.
 - Rejection of zero as an invalid index.
-- Save is attempted only after a valid deletion.
-- Save failure path shows an error and suppresses deletion success message.
 
 This ensures the index-only deletion flow remains stable and regressions are caught early.
 
@@ -202,13 +214,11 @@ Given below is an example scenario of how `DeleteCommand` is processed.
 
 **Step 1.** The user enters a delete command, for example `delete 3`.
 
-**Step 2.** `Parser.parse(...)` identifies the `delete` command and creates a `DeleteCommand` with the raw argument.
+**Step 2.** `Parser.parse(...)` identifies the `delete` command, validates the index, and creates a `DeleteCommand` with the parsed one-based index.
 
-**Step 3.** In `DeleteCommand.execute(storage, workouts, ui, profile)`, the command first checks for empty input.
+**Step 3.** In `DeleteCommand.execute(storage, workouts, ui, profile)`, the command converts the one-based index to zero-based form and checks bounds.
 
-**Step 4.** The command parses the raw argument as a positive one-based index and rejects invalid input.
-
-**Step 5.** If the index is valid and within range, the workout is removed from `WorkoutList` and the user sees a deletion confirmation.
+**Step 4.** If the index is valid and within range, the workout is removed from `WorkoutList` and the user sees a deletion confirmation.
 Otherwise, the user sees an index validation message.
 
 ---
@@ -722,7 +732,14 @@ search-date <YYYY-MM-DD>
 2. `parseSearchDate(...)` validates date presence and format (`LocalDate.parse`).
 3. A `SearchDateCommand` is returned and executed polymorphically.
 4. `SearchDateCommand.execute(...)` scans `WorkoutList` and collects matching dates.
-5. `Ui.showWorkoutList(...)` prints matching workouts, or `No workouts found.` for empty results.
+5. If matches exist, `Ui.showWorkoutList(...)` prints them under a dated heading.
+6. If there are no matches, the command prints only `No workouts found.`.
+
+#### UML diagrams
+
+![SearchDateCommandClassDiagram](images/SearchDateCommandClassDiagram.png)
+
+![SearchDateCommandSequenceDiagram](images/SearchDateCommandSequenceDiagram.png)
 
 #### Validation and edge cases
 
@@ -744,6 +761,12 @@ If save fails, the app now shows clear error messages instead of always implying
 1. `Storage.saveData(...)` returns `boolean` (`true` for success, `false` on `IOException`).
 2. `AddWorkoutCommand`, `DeleteCommand`, `EditCommand`, and `ExitCommand` check that result.
 3. On failure, commands show `ui.showError(...)` and skip success-only messages.
+
+#### UML diagrams
+
+![ExitCommandClassDiagram](images/ExitCommandClassDiagram.png)
+
+![ExitCommandSequenceDiagram](images/ExitCommandSequenceDiagram.png)
 
 ---
 

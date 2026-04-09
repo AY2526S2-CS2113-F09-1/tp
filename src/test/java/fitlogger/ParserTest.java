@@ -237,6 +237,27 @@ class ParserTest {
     }
 
     @Test
+    void delete_missingIndex_throwsFitLoggerException() {
+        FitLoggerException ex = assertThrows(FitLoggerException.class,
+                () -> Parser.parse("delete", workouts, dictionary));
+        assertTrue(ex.getMessage().contains("Usage: delete <index>"));
+    }
+
+    @Test
+    void delete_nonNumericIndex_throwsFitLoggerException() {
+        FitLoggerException ex = assertThrows(FitLoggerException.class,
+                () -> Parser.parse("delete abc", workouts, dictionary));
+        assertEquals("Workout index must be a positive integer.", ex.getMessage());
+    }
+
+    @Test
+    void delete_zeroIndex_throwsFitLoggerException() {
+        FitLoggerException ex = assertThrows(FitLoggerException.class,
+                () -> Parser.parse("delete 0", workouts, dictionary));
+        assertEquals("Workout index must be a positive integer.", ex.getMessage());
+    }
+
+    @Test
     void parse_edit_returnsEditCommand() throws FitLoggerException {
         Command cmd = Parser.parse("edit 1 distance/5", workouts, dictionary);
         assertTrue(cmd instanceof EditCommand, "Expected EditCommand for edit");
