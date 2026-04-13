@@ -72,7 +72,7 @@ public class FilterTypeCommandTest {
     }
 
     @Test
-    void filterMultipleMusclesCommaSeparated_quads_glutesWithComma_returnsSquatAndDeadlift()
+    void filterMultipleMuscles_quadsAndGlutesWithComma_returnsSquatAndDeadlift()
             throws FitLoggerException {
         FilterTypeCommand command = new FilterTypeCommand("quads,glutes", dictionary);
         command.execute(storage, workouts, ui, profile);
