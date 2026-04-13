@@ -646,15 +646,16 @@ test and extend independently.
 
 ---
 
-### Enhancement 7: Exercise Shortcut System (`ExerciseDictionary`, `AddShortcutCommand`, and `ViewDatabaseCommand`)
+### Enhancement 7: Exercise Shortcut System (`ExerciseDictionary`, `AddShortcutCommand`, `DeleteShortcutCommand`, and `ViewDatabaseCommand`)
 
 #### Purpose and user value
 
 The exercise shortcut system lets users log workouts by typing a short numeric ID instead of the full exercise name every time. For example, `add-lift 2 w/80 s/3 r/8` resolves to `Bench Press` via the database, avoiding repetitive typing.
 
-The system has three parts:
+The system has four parts:
 - `ExerciseDictionary`: the in-memory data model storing ID-to-name mappings for lifts and runs.
 - `AddShortcutCommand`: lets users extend the database with their own shortcuts at runtime.
+- `DeleteShortcutCommand`: lets users cleanly remove custom shortcuts and their associated metadata.
 - `ViewDatabaseCommand`: lets users see what shortcuts are currently available.
 
 The database ships with four default lift shortcuts and three default run shortcuts. Custom shortcuts added via `add-shortcut` are permanently persisted to the save file alongside the user's profile and workout history.
@@ -669,12 +670,23 @@ The class diagram below shows the relationships between the components.
 
 `ExerciseDictionary` uses two `TreeMap<Integer, String>` fields; one for lifts, one for runs. `TreeMap` was chosen over `HashMap` so entries are always displayed in ascending ID order by `ViewDatabaseCommand`.
 
+#### Object-level design (Memory Snapshot)
+
+The object diagram below illustrates a snapshot of the `ExerciseDictionary` in memory after a user has launched the app (loading the default exercises like Squat and Easy Run) and added a custom shortcut via `add-shortcut lift 99 Muscle Up`.
+
+![Exercise Dictionary Object Diagram](images/ExerciseDictionaryObjectDiagram.png)
+
+This snapshot demonstrates how the three internal maps manage their data:
+- `liftDictionary` and `runDictionary` map integer IDs to their respective exercise name strings.
+- `liftMuscleGroups` maps the same lift ID to an `EnumSet` of `MuscleGroup` tags.
+
 #### Component-level behavior
 
 **`ExerciseDictionary`** exposes:
 
 - `getLiftName(int id)` / `getRunName(int id)`: returns the name for a given ID, or `null` if not found.
-- `addLiftShortcut(int id, String name)` / `addRunShortcut(int id, String name)`: inserts or overwrites an entry.
+- `addLiftShortcut(int id, String name)`: inserts or overwrites an entry. To prevent dangling metadata, overwriting an ID automatically calls `liftMuscleGroups.remove(id)` to wipe old tags.
+- `removeLiftShortcut(int id)` / `removeRunShortcut(int id)`: deletes the entry from the database and wipes any associated muscle tags.
 - `getLiftShortcuts()` / `getRunShortcuts()`: returns the full map, used by `Ui.showExerciseDatabase(...)`.
 
 **`Parser.parseAddShortcut(...)`** performs:
@@ -689,6 +701,20 @@ The class diagram below shows the relationships between the components.
 
 1. Call `dictionary.addLiftShortcut(id, name)` or `dictionary.addRunShortcut(id, name)` based on `type`.
 2. Display a confirmation via `Ui`.
+
+**`Parser.parseDeleteShortcut(...)`** performs:
+
+1. Splits arguments into two parts: `type` and `id`.
+2. Validates `type` is exactly `"lift"` or `"run"`.
+3. Parses `id` as a positive integer within application limits.
+4. Returns `new DeleteShortcutCommand(type, id, dictionary)`.
+
+**`DeleteShortcutCommand.execute(...)`** performs:
+
+1. Checks if the `id` exists in the corresponding lift or run dictionary. Throws a `FitLoggerException` if not found.
+2. Retrieves the exercise name for the success message.
+3. Calls `dictionary.removeLiftShortcut(id)` or `dictionary.removeRunShortcut(id)` based on `type`.
+4. Displays a confirmation message via `Ui`.
 
 The sequence diagram below shows this flow for `add-shortcut lift 5 Romanian Deadlift`.
 

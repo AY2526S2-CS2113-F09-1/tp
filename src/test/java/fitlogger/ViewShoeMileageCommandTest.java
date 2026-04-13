@@ -1,61 +1,102 @@
 package fitlogger;
 
+import fitlogger.command.ViewShoeMileageCommand;
 import fitlogger.exception.FitLoggerException;
+import fitlogger.ui.Ui;
 import fitlogger.workout.RunWorkout;
+import fitlogger.workoutlist.WorkoutList;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Tests the ViewShoeMileageCommand to ensure total distance is calculated correctly.
+ */
 public class ViewShoeMileageCommandTest {
 
     @Test
-    public void execute_emptyWorkoutList_showsZeroMileage() {
-        double totalMileage = 0;
-        assertEquals("Your total distance ran is: 0.00km",
-                "Your total distance ran is: " + String.format("%.2fkm", totalMileage));
+    public void execute_multipleRunWorkouts_correctTotalCalculated() throws FitLoggerException {
+        // Arrange
+        WorkoutList workouts = new WorkoutList();
+        LocalDate today = LocalDate.now();
+
+        // Using the full constructor: (description, date, distance, duration)
+        workouts.addWorkout(new RunWorkout("Morning Run", today, 5.5, 30.0));
+        workouts.addWorkout(new RunWorkout("Evening Jog", today, 4.5, 25.0));
+
+        // Capture system output
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+
+        try {
+            Ui ui = new Ui();
+            ViewShoeMileageCommand command = new ViewShoeMileageCommand();
+
+            // Act
+            command.execute(null, workouts, ui, null);
+
+            // Assert
+            String output = outContent.toString();
+            // Checking for formatted "10.00km" and plural "2 runs"
+            assertTrue(output.contains("10.00km"), "Total distance should be 10.00km");
+            assertTrue(output.contains("2 runs"), "Should reflect 2 runs");
+        } finally {
+            System.setOut(originalOut);
+        }
     }
 
     @Test
-    public void execute_singleRunWorkout_correctMileage() throws FitLoggerException {
-        RunWorkout run = new RunWorkout("Morning jog", LocalDate.parse("2026-03-13"), 5.0, 30.0);
-        double totalMileage = run.getDistance();
-        assertEquals("Your total distance ran is: 5.00km",
-                "Your total distance ran is: " + String.format("%.2fkm", totalMileage));
+    public void execute_singleRunWorkout_singularLabelUsed() throws FitLoggerException {
+        // Arrange
+        WorkoutList workouts = new WorkoutList();
+        workouts.addWorkout(new RunWorkout("Solo Run", LocalDate.now(), 10.0, 60.0));
+
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+
+        try {
+            Ui ui = new Ui();
+            ViewShoeMileageCommand command = new ViewShoeMileageCommand();
+
+            // Act
+            command.execute(null, workouts, ui, null);
+
+            // Assert
+            String output = outContent.toString();
+            assertTrue(output.contains("10.00km"));
+            assertTrue(output.contains("1 run."), "Should use singular 'run' for count of 1");
+        } finally {
+            System.setOut(originalOut);
+        }
     }
 
     @Test
-    public void execute_multipleRunWorkouts_correctMileage() throws FitLoggerException {
-        RunWorkout run1 = new RunWorkout("Morning jog", LocalDate.parse("2026-03-13"), 5.0, 30.0);
-        RunWorkout run2 = new RunWorkout("Evening run", LocalDate.parse("2026-03-14"), 3.75, 20.0);
-        RunWorkout run3 = new RunWorkout("Long run", LocalDate.parse("2026-03-15"), 10.0, 60.0);
-        double totalMileage = run1.getDistance() + run2.getDistance() + run3.getDistance();
-        assertEquals("Your total distance ran is: 18.75km",
-                "Your total distance ran is: " + String.format("%.2fkm", totalMileage));
-    }
+    public void execute_emptyWorkoutList_showsZero() {
+        // Arrange
+        WorkoutList workouts = new WorkoutList();
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
 
-    @Test
-    public void execute_decimalDistance_formatsToTwoDecimalPlaces() throws FitLoggerException {
-        RunWorkout run = new RunWorkout("Trail run", LocalDate.parse("2026-03-13"), 4.1, 25.0);
-        double totalMileage = run.getDistance();
-        assertEquals("Your total distance ran is: 4.10km",
-                "Your total distance ran is: " + String.format("%.2fkm", totalMileage));
-    }
+        try {
+            Ui ui = new Ui();
+            ViewShoeMileageCommand command = new ViewShoeMileageCommand();
 
-    @Test
-    public void execute_largeDistance_correctMileage() throws FitLoggerException {
-        RunWorkout run = new RunWorkout("Ultra marathon", LocalDate.parse("2026-03-13"), 100.0, 600.0);
-        double totalMileage = run.getDistance();
-        assertEquals("Your total distance ran is: 100.00km",
-                "Your total distance ran is: " + String.format("%.2fkm", totalMileage));
-    }
+            // Act
+            command.execute(null, workouts, ui, null);
 
-    @Test
-    public void execute_smallDistance_correctMileage() throws FitLoggerException {
-        RunWorkout run = new RunWorkout("Short jog", LocalDate.parse("2026-03-13"), 0.5, 5.0);
-        double totalMileage = run.getDistance();
-        assertEquals("Your total distance ran is: 0.50km",
-                "Your total distance ran is: " + String.format("%.2fkm", totalMileage));
+            // Assert
+            String output = outContent.toString();
+            assertTrue(output.contains("0.00km"));
+            assertTrue(output.contains("0 runs"));
+        } finally {
+            System.setOut(originalOut);
+        }
     }
 }

@@ -7,8 +7,11 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ExerciseDictionary {
+    private static final Logger logger = Logger.getLogger(ExerciseDictionary.class.getName());
     private final TreeMap<Integer, String> liftDictionary;
     private final TreeMap<Integer, String> runDictionary;
     private final Map<Integer, EnumSet<MuscleGroup>> liftMuscleGroups;
@@ -60,13 +63,29 @@ public class ExerciseDictionary {
     }
 
     public void addLiftShortcut(int id, String name) {
+        logger.log(Level.INFO, "Adding/Overwriting lift shortcut: [" + id + "] " + name);
         assert id > 0 && name != null && !name.trim().isEmpty();
+        // Remove old muscle tags associated with this ID before overwriting
+        if (liftDictionary.containsKey(id)) {
+            logger.log(Level.INFO, "Clearing old muscle tags for ID " + id + " due to overwrite.");
+            liftMuscleGroups.remove(id);
+        }
         liftDictionary.put(id, name);
+        liftMuscleGroups.remove(id);
     }
 
     public void addRunShortcut(int id, String name) {
         assert id > 0 && name != null && !name.trim().isEmpty();
         runDictionary.put(id, name);
+    }
+
+    public void removeLiftShortcut(int id) {
+        liftDictionary.remove(id);
+        liftMuscleGroups.remove(id);
+    }
+
+    public void removeRunShortcut(int id) {
+        runDictionary.remove(id);
     }
 
     public Map<Integer, String> getLiftShortcuts() {
@@ -77,17 +96,29 @@ public class ExerciseDictionary {
         return runDictionary;
     }
 
-    public void tagMuscles(int id, MuscleGroup muscleGroup) {
+    public boolean tagMuscles(int id, MuscleGroup muscleGroup) {
         liftMuscleGroups.putIfAbsent(id, EnumSet.noneOf(MuscleGroup.class));
-        liftMuscleGroups.get(id).add(muscleGroup);
+        // Returns true if the set did not already contain the element
+        boolean isAdded = liftMuscleGroups.get(id).add(muscleGroup);
+
+        if (isAdded) {
+            logger.log(Level.INFO, "Tagged lift ID " + id + " with " + muscleGroup);
+        }
+        return isAdded;
     }
 
-    public void untagMuscles(int id, MuscleGroup muscleGroup) {
+    public boolean untagMuscles(int id, MuscleGroup muscleGroup) {
         EnumSet<MuscleGroup> set = liftMuscleGroups.get(id);
         if (set == null) {
-            return;
+            return false;
         }
-        set.remove(muscleGroup);
+        // Returns true if the set contained the element
+        boolean isRemoved = set.remove(muscleGroup);
+
+        if (isRemoved) {
+            logger.log(Level.INFO, "Untagged lift ID " + id + " with " + muscleGroup);
+        }
+        return isRemoved;
     }
 
     public Set<MuscleGroup> getMusclesFor(int id) {

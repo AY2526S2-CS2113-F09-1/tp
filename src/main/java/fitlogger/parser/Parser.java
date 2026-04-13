@@ -2,6 +2,7 @@ package fitlogger.parser;
 
 
 import fitlogger.command.AddWorkoutCommand;
+import fitlogger.command.ClearProfileCommand;
 import fitlogger.command.Command;
 import fitlogger.command.DeleteCommand;
 import fitlogger.command.EditCommand;
@@ -22,6 +23,7 @@ import fitlogger.command.ViewMuscleGroupCommand;
 import fitlogger.command.ViewProfileCommand;
 import fitlogger.command.ViewShoeMileageCommand;
 import fitlogger.command.AddShortcutCommand;
+import fitlogger.command.DeleteShortcutCommand;
 import fitlogger.command.ViewPrCommand;
 import fitlogger.exception.FitLoggerException;
 import fitlogger.musclegroup.MuscleGroup;
@@ -85,10 +87,8 @@ public class Parser {
         case "add-lift":
             return parseAddLift(arguments, workouts, dictionary);
 
-        case "list":
-            // fallthrough intentional — same behaviour as history
         case "history":
-            return new ViewHistoryCommand();
+            return parseViewHistory(arguments);
 
         case "help":
             return new HelpCommand();
@@ -101,6 +101,9 @@ public class Parser {
 
         case "add-shortcut":
             return parseAddShortcut(arguments, dictionary);
+
+        case "delete-shortcut":
+            return parseDeleteShortcut(arguments, dictionary);
 
         case "lastlift":
             return new ViewLastLiftCommand(arguments);
@@ -174,6 +177,9 @@ public class Parser {
             String durationText = runInfo[2].trim();
             if (!isPlainDecimalNumber(distanceText) || !isPlainDecimalNumber(durationText)) {
                 throw new NumberFormatException();
+            }
+            if (durationText.matches(".*\\s+.*")) {
+                throw new FitLoggerException("Invalid format. No additional text allowed after duration.");
             }
             distance = Double.parseDouble(distanceText);
             durationMinutes = Double.parseDouble(durationText);
@@ -257,7 +263,12 @@ public class Parser {
                 throw new NumberFormatException();
             }
             sets = parsePositiveIntegerWithinLimit(info[2].trim(), "Sets");
-            reps = parsePositiveIntegerWithinLimit(info[3].trim(), "Reps");
+            String repsText = info[3].trim();
+            if (repsText.matches(".*\\s+.*")) {
+                throw new FitLoggerException("Invalid format. No additional text allowed after reps.");
+            }
+            reps = parsePositiveIntegerWithinLimit(repsText, "Reps");
+
         } catch (NumberFormatException e) {
             throw new FitLoggerException(
                     "Weight must be a decimal number; sets and reps must be integers.\n"
@@ -299,6 +310,23 @@ public class Parser {
         return new AddShortcutCommand(type, id, name, dictionary);
     }
 
+    private static Command parseDeleteShortcut(String arguments, ExerciseDictionary dictionary)
+            throws FitLoggerException {
+        if (arguments.isBlank()) {
+            throw new FitLoggerException("Missing arguments.\nUsage: delete-shortcut <lift/run> <ID>");
+        }
+        String[] parts = splitInput(arguments, " ", 2);
+        if (parts.length < 2) {
+            throw new FitLoggerException("Invalid format.\nUsage: delete-shortcut <lift/run> <ID>");
+        }
+        String type = parts[0].toLowerCase();
+        if (!type.equals("lift") && !type.equals("run")) {
+            throw new FitLoggerException("Shortcut type must be 'lift' or 'run'.");
+        }
+        int id = parsePositiveIntegerWithinLimit(parts[1].trim(), "Shortcut ID");
+        return new DeleteShortcutCommand(type, id, dictionary);
+    }
+
     /**
      * Parses an edit command.
      *
@@ -307,7 +335,6 @@ public class Parser {
      * </p>
      *
      * @param arguments Everything after "edit ".
-     * @param workouts The active workout list.
      * @return An {@link EditCommand} that updates one workout field.
      * @throws FitLoggerException if arguments are missing or malformed.
      */
@@ -486,6 +513,9 @@ public class Parser {
             case "view":
                 // ignores all entries after it
                 return new ViewProfileCommand();
+            case "clear":
+                //ignores all entries after it
+                return new ClearProfileCommand();
             case "set":
                 if (info.length < 2) {
                     throw new FitLoggerException("Field not provided. \n"
@@ -523,9 +553,12 @@ public class Parser {
             throws FitLoggerException {
         try {
             double newValue = Double.parseDouble(value);
+            if (!Double.isFinite(newValue)) {
+                throw new FitLoggerException("Invalid input. Please provide a real number.");
+            }
             if (newValue < lowerBound || newValue > upperBound) {
                 throw new FitLoggerException("Your Height/Weight is unrealistically low/high.\n"
-                        + "Please ensure your values are correctly, height in m and weight in Kg");
+                        + "Please ensure your values are correct, height in m and weight in Kg");
             }
             return newValue;
         } catch (NumberFormatException e) {
@@ -599,6 +632,23 @@ public class Parser {
         } catch (DateTimeParseException e) {
             throw new FitLoggerException(
                     "Invalid calendar format. Use YYYY-MM (e.g., view-calendar 2026-04)");
+        }
+    }
+
+    private static Command parseViewHistory(String arguments) throws FitLoggerException {
+        if (arguments.isBlank()) {
+            return new ViewHistoryCommand();
+        }
+
+        try {
+            int count = Integer.parseInt(arguments.trim());
+            if (count <= 0) {
+                throw new FitLoggerException("History count must be a positive integer.");
+            }
+            return new ViewHistoryCommand(count);
+        } catch (NumberFormatException e) {
+            throw new FitLoggerException("Invalid format. Usage: history [number]\n" +
+                    "Number should be positive and below " + Parser.MAX_INTEGER_INPUT + ".");
         }
     }
 }

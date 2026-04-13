@@ -57,6 +57,7 @@ public class Ui {
         String helpMessage = "Command Guide:\n"
                 + "    help                                           List available commands\n"
                 + "    profile view                                   View your profile\n"
+                + "    profile clear                                  Clears your profile\n"
                 + "    profile set <field> <value>                    Update your profile. "
                 + "Available fields: name / weight / height \n"
                 + "    add-run <name_or_id> d/<distKm> t/<mins>       Log a run\n"
@@ -66,6 +67,7 @@ public class Ui {
                 + "    view-database                                  View exercise shortcuts and their IDs\n"
                 + "    view-detailed-database                         View exercise shortcuts, IDs, and muscle groups\n"
                 + "    add-shortcut <lift/run> <ID> <name>            Add a custom exercise shortcut\n"
+                + "    delete-shortcut <lift/run> <ID>                Delete a custom exercise shortcut\n"
                 + "    view-total-mileage                             View total distance ran across all run workouts\n"
                 + "    lastlift <EXERCISE_NAME>                       View most recent lift for an exercise\n"
                 + "    view-muscle-groups                             View all available muscle groups\n"
@@ -73,7 +75,7 @@ public class Ui {
                 + "    tag-muscle <lift_shortcut_ID> <muscle>         Tag muscle groups to a shortcut\n"
                 + "    untag-muscle <lift_shortcut_ID> <muscle>       Remove muscle group tags\n"
                 + "    train <muscle>                                 List exercises targeting that muscle\n"
-                + "    history                                        View all logged workouts\n"
+                + "    history [NUMBER]                               View past NUMBER workouts (all if omitted)\n"
                 + "    filter <muscle_group>                          Filter workouts by muscle (e.g., filter chest)\n"
                 + "    delete <index>                                 Delete workout by number\n"
                 + "    search-date <YYYY-MM-DD>                       View workouts completed on a date\n"
@@ -113,13 +115,9 @@ public class Ui {
             int id = entry.getKey();
             showMessageNoNewline("  [" + id + "] -> " + entry.getValue());
 
-            Set<MuscleGroup> muscles = dictionary.getMusclesFor(id);
             if (isDetailed) {
-                if (muscles.isEmpty()) {
-                    showMessage(" (Muscles: no muscles currently tagged)");
-                } else {
-                    showMessage(" (Muscles: " + muscles + ")");
-                }
+                Set<MuscleGroup> muscles = dictionary.getMusclesFor(id);
+                showMessage(" (Muscles: " + formatMuscleSet(muscles) + ")");
             } else {
                 showMessage("");
             }
@@ -143,6 +141,25 @@ public class Ui {
             }
         }
         showMessage("");
+    }
+
+    /**
+     * Formats a set of muscle groups into a user-friendly comma-separated string.
+     * Example: [QUADS, GLUTES] -> "quads, glutes"
+     */
+    public String formatMuscleSet(Set<MuscleGroup> muscles) {
+        if (muscles.isEmpty()) {
+            return "no muscles currently tagged";
+        }
+        StringBuilder sb = new StringBuilder();
+        int count = 0;
+        for (MuscleGroup muscle : muscles) {
+            sb.append(muscle.displayName());
+            if (++count < muscles.size()) {
+                sb.append(", ");
+            }
+        }
+        return sb.toString();
     }
 
     /**
