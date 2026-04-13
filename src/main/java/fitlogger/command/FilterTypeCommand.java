@@ -10,26 +10,57 @@ import fitlogger.workout.Workout;
 import fitlogger.workoutlist.WorkoutList;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Represents a command to filter the workout history based on a specific muscle group. This command
- * iterates through the list of workouts and identifies those that are associated with the target
- * muscle group via the exercise dictionary.
+ * Represents a command to filter the workout history based on one or more muscle groups. This
+ * command iterates through the list of workouts and identifies those that are associated with any
+ * of the target muscle groups via the exercise dictionary. Supports stacking filters (e.g., "filter
+ * quads glutes").
  */
 public class FilterTypeCommand extends Command {
-    private final String targetCategory;
+    private final Set<String> targetCategories;
     private final ExerciseDictionary dictionary;
 
     /**
-     * Initializes a new FilterTypeCommand with the specified muscle group and dictionary.
+     * Initializes a new FilterTypeCommand with the specified muscle group(s) and dictionary.
      *
-     * @param targetCategory The name of the muscle group to filter by (e.g., "pecs").
+     * @param targetCategoriesInput The name(s) of muscle groups to filter by (e.g., "pecs" or
+     *        "quads glutes" or "quads,glutes"). Supports space-separated and comma-separated
+     *        formats.
      * @param dictionary The dictionary used to look up muscle group tags for exercises.
      */
-    public FilterTypeCommand(String targetCategory, ExerciseDictionary dictionary) {
-        this.targetCategory = targetCategory;
+    public FilterTypeCommand(String targetCategoriesInput, ExerciseDictionary dictionary) {
+        this.targetCategories = parseCategories(targetCategoriesInput);
         this.dictionary = dictionary;
+    }
+
+    /**
+     * Parses the input string to extract individual muscle group categories. Supports both
+     * space-separated and comma-separated formats.
+     *
+     * @param input The raw input string containing one or more muscle groups.
+     * @return A set of individual muscle group names (lowercased).
+     */
+    private static Set<String> parseCategories(String input) {
+        Set<String> categories = new HashSet<>();
+        if (input == null || input.isBlank()) {
+            return categories;
+        }
+
+        // Replace commas with spaces for uniform parsing
+        String normalized = input.replace(",", " ");
+
+        // Split by whitespace and add non-empty tokens
+        String[] parts = normalized.split("\\s+");
+        for (String part : parts) {
+            if (!part.isBlank()) {
+                categories.add(part.toLowerCase());
+            }
+        }
+
+        return categories;
     }
 
     /**
@@ -44,10 +75,11 @@ public class FilterTypeCommand extends Command {
     @Override
     public void execute(Storage storage, WorkoutList workouts, Ui ui, UserProfile profile) {
         assert workouts != null : "WorkoutList must not be null";
-        assert targetCategory != null : "Target Category must not be null";
+        assert targetCategories != null : "Target Categories must not be null";
 
-        if (targetCategory.isBlank()) {
-            ui.showMessage("Please specify a muscle group. Usage: filter <muscle_group>");
+        if (targetCategories.isEmpty()) {
+            ui.showMessage(
+                    "Please specify a muscle group. Usage: filter <muscle_group> [<muscle_group2> ...]");
             return;
         }
 
@@ -59,7 +91,7 @@ public class FilterTypeCommand extends Command {
 
                 if (shortcutId != -1) {
                     Set<MuscleGroup> muscleGroups = dictionary.getMusclesFor(shortcutId);
-                    if (matchesCategory(muscleGroups)) {
+                    if (matchesAnyCategory(muscleGroups)) {
                         filteredList.add(workout);
                     }
                 }
@@ -67,21 +99,23 @@ public class FilterTypeCommand extends Command {
         }
 
         ui.showLine();
-        ui.showMessage("Workouts matching category [" + targetCategory + "]:");
+        String displayCategories = String.join(", ", targetCategories);
+        ui.showMessage("Workouts matching category [" + displayCategories + "]:");
         ui.showWorkoutList(filteredList);
         ui.showLine();
     }
 
     /**
-     * Checks if any of the muscle groups in the provided set match the target category. The
-     * comparison is case-insensitive to ensure a user-friendly filtering experience.
+     * Checks if any of the muscle groups in the provided set match any of the target categories.
+     * The comparison is case-insensitive to ensure a user-friendly filtering experience.
      *
      * @param groups The set of muscle groups associated with a specific exercise.
-     * @return true if a match is found; false otherwise.
+     * @return true if a match is found for any target category; false otherwise.
      */
-    private boolean matchesCategory(Set<MuscleGroup> groups) {
+    private boolean matchesAnyCategory(Set<MuscleGroup> groups) {
         for (MuscleGroup group : groups) {
-            if (group.displayName().equalsIgnoreCase(targetCategory)) {
+            String groupName = group.displayName().toLowerCase();
+            if (targetCategories.contains(groupName)) {
                 return true;
             }
         }
