@@ -2,6 +2,7 @@ package fitlogger.parser;
 
 
 import fitlogger.command.AddWorkoutCommand;
+import fitlogger.command.ClearProfileCommand;
 import fitlogger.command.Command;
 import fitlogger.command.DeleteCommand;
 import fitlogger.command.EditCommand;
@@ -483,6 +484,9 @@ public class Parser {
             case "view":
                 // ignores all entries after it
                 return new ViewProfileCommand();
+            case "clear":
+                //ignores all entries after it
+                return new ClearProfileCommand();
             case "set":
                 if (info.length < 2) {
                     throw new FitLoggerException("Field not provided. \n"

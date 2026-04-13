@@ -57,6 +57,7 @@ public class Ui {
         String helpMessage = "Command Guide:\n"
                 + "    help                                           List available commands\n"
                 + "    profile view                                   View your profile\n"
+                + "    profile clear                                  Clears your profile\n"
                 + "    profile set <field> <value>                    Update your profile. "
                 + "Available fields: name / weight / height \n"
                 + "    add-run <name_or_id> d/<distKm> t/<mins>       Log a run\n"
