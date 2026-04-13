@@ -8,10 +8,10 @@ import java.util.logging.Logger;
  * Stores and manages user-specific data including name, weight, and height.
  */
 public class UserProfile {
+    private static final Logger logger = Logger.getLogger(UserProfile.class.getName());
     private String name;
     private double weight;
     private double height;
-    private static final Logger logger = Logger.getLogger(UserProfile.class.getName());
 
     /**
      * Initializes a new UserProfile with default null and sentinel values.

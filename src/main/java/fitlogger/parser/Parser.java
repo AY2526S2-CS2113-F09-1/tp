@@ -552,9 +552,6 @@ public class Parser {
     private static double updateHeightOrWeight(String value, double lowerBound, double upperBound)
             throws FitLoggerException {
         try {
-            if (!isPlainDecimalNumber(value)) {
-                throw new FitLoggerException("Please provide a standard decimal number (no scientific notation).");
-            }
             double newValue = Double.parseDouble(value);
             if (!Double.isFinite(newValue)) {
                 throw new FitLoggerException("Invalid input. Please provide a real number.");

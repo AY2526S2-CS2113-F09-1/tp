@@ -11,10 +11,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ExerciseDictionary {
+    private static final Logger logger = Logger.getLogger(ExerciseDictionary.class.getName());
     private final TreeMap<Integer, String> liftDictionary;
     private final TreeMap<Integer, String> runDictionary;
     private final Map<Integer, EnumSet<MuscleGroup>> liftMuscleGroups;
-    private static final Logger logger = Logger.getLogger(ExerciseDictionary.class.getName());
 
     public ExerciseDictionary() {
         this.liftDictionary = new TreeMap<>();
