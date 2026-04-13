@@ -1,51 +1,81 @@
 package fitlogger;
 
 import fitlogger.exception.FitLoggerException;
+import fitlogger.workout.RunWorkout;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import fitlogger.workout.RunWorkout;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * Tests the functionality of the RunWorkout class, including inheritance
- * from Workout and file string formatting.
+ * Tests the RunWorkout class to ensure proper initialization,
+ * validation, and formatting.
  */
-public class RunWorkoutTest {
+class RunWorkoutTest {
+    private RunWorkout run;
+    private LocalDate testDate;
 
-    @Test
-    public void testRunWorkoutInitialization() throws FitLoggerException {
-        LocalDate date = LocalDate.of(2026, 3, 13);
-        RunWorkout run = new RunWorkout("Morning Jog", date, 5, 0.20);
-
-        // Test if fields are assigned correctly
-        assertEquals("Morning Jog", run.getDescription(), "Description should match constructor input");
-        assertEquals(date, run.getDate(), "Date should match constructor input");
-        assertEquals(5, run.getDistance(), "Distance should match constructor input");
-        assertEquals(0.2, run.getDurationMinutes(), "Time should match constructor input");
+    @BeforeEach
+    public void setUp() throws FitLoggerException {
+        testDate = LocalDate.of(2026, 3, 13);
+        // Using a standard 5km, 30min run for setup
+        run = new RunWorkout("Morning Jog", testDate, 5.0, 30.0);
     }
 
     @Test
-    public void testToFileFormat() throws FitLoggerException {
-        LocalDate date = LocalDate.of(2025, 7, 30);
-        RunWorkout run = new RunWorkout("Tempo Run", date, 14, 50.3);
-
-        // Check format for uncompleted run
-        String expectedUncompleted = "R | Tempo Run | 2025-07-30 | 14.0 | 50.3";
-        assertEquals(expectedUncompleted, run.toFileFormat(), "File format mismatch");
+    public void constructor_validInput_setsAllFields() {
+        assertEquals("Morning Jog", run.getDescription());
+        assertEquals(testDate, run.getDate());
+        assertEquals(5.0, run.getDistance(), 0.001);
+        assertEquals(30.0, run.getDurationMinutes(), 0.001);
     }
 
     @Test
-    public void testInvalidInputHandling() {
-        // Example of using fail() - you can expand this when you add validation logic
-        try {
-            new RunWorkout(null, null, 0, 0);
-            // If you eventually add checks for nulls or negative distance,
-            // you would uncomment the line below:
-            // fail("Should have thrown an exception for invalid inputs");
-        } catch (Exception e) {
-            // Success: Exception caught
-        }
+    public void setDistance_validUpdate_updatesCorrectly() throws FitLoggerException {
+        run.setDistance(10.5);
+        assertEquals(10.5, run.getDistance(), 0.001);
+    }
+
+    @Test
+    public void setDistance_negativeValue_throwsException() {
+        assertThrows(FitLoggerException.class, () -> {
+            run.setDistance(-1.0);
+        });
+    }
+
+    @Test
+    public void setDurationMinutes_zeroValue_throwsException() {
+        assertThrows(FitLoggerException.class, () -> {
+            run.setDurationMinutes(0);
+        });
+    }
+
+    @Test
+    public void setDurationMinutes_nonFiniteValue_throwsException() {
+        assertThrows(FitLoggerException.class, () -> {
+            run.setDurationMinutes(Double.NaN);
+        });
+    }
+
+    @Test
+    public void toFileFormat_standardInput_matchesExpectedString() {
+        String expected = "R | Morning Jog | 2026-03-13 | 5.0 | 30.0";
+        assertEquals(expected, run.toFileFormat());
+    }
+
+    @Test
+    public void toString_standardInput_matchesExpectedString() {
+        String expected = "[Run] Morning Jog (Date: 2026-03-13) (Distance: 5.0km, Duration: 30.0 mins)";
+        assertEquals(expected, run.toString());
+    }
+
+    @Test
+    public void setDescription_blankName_throwsException() {
+        assertThrows(FitLoggerException.class, () -> {
+            run.setDescription("   ");
+        });
     }
 }

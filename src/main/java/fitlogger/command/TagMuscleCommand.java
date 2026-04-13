@@ -7,11 +7,22 @@ import fitlogger.storage.Storage;
 import fitlogger.ui.Ui;
 import fitlogger.workoutlist.WorkoutList;
 
+/**
+ * Command to add a muscle group tag to a specific exercise in the dictionary.
+ */
 public class TagMuscleCommand extends EditMuscleTagCommand {
     public TagMuscleCommand(int id, MuscleGroup muscle, ExerciseDictionary dictionary) {
         super(id, muscle, dictionary);
     }
 
+    /**
+     * Executes the tagging logic and notifies the user.
+     *
+     * @param storage  The storage handler.
+     * @param workouts The list of workouts.
+     * @param ui       The user interface to display confirmation.
+     * @param profile  The user profile.
+     */
     @Override
     public void execute(Storage storage, WorkoutList workouts, Ui ui, UserProfile profile) {
         dictionary.tagMuscles(id, muscle);

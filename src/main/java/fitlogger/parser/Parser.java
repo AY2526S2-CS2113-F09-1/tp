@@ -307,7 +307,6 @@ public class Parser {
      * </p>
      *
      * @param arguments Everything after "edit ".
-     * @param workouts The active workout list.
      * @return An {@link EditCommand} that updates one workout field.
      * @throws FitLoggerException if arguments are missing or malformed.
      */
