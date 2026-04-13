@@ -21,8 +21,7 @@ public class ViewLastLiftCommand extends Command {
         assert exerciseId != null : "Exercise ID must not be null";
 
         if (exerciseId.isBlank()) {
-            ui.showMessage(
-                    "Please specify an exercise name or shortcut ID. Usage: lastlift <EXERCISE_NAME_OR_ID>");
+            ui.showMessage("Please specify an exercise name. Usage: lastlift <EXERCISE_NAME>");
             return;
         }
 
