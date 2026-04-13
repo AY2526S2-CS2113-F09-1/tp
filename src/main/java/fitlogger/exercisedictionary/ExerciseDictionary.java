@@ -80,18 +80,29 @@ public class ExerciseDictionary {
         return runDictionary;
     }
 
-    public void tagMuscles(int id, MuscleGroup muscleGroup) {
-        logger.log(Level.INFO, "Tagging lift ID " + id + " with " + muscleGroup);
+    public boolean tagMuscles(int id, MuscleGroup muscleGroup) {
         liftMuscleGroups.putIfAbsent(id, EnumSet.noneOf(MuscleGroup.class));
-        liftMuscleGroups.get(id).add(muscleGroup);
+        // Returns true if the set did not already contain the element
+        boolean isAdded = liftMuscleGroups.get(id).add(muscleGroup);
+
+        if (isAdded) {
+            logger.log(Level.INFO, "Tagged lift ID " + id + " with " + muscleGroup);
+        }
+        return isAdded;
     }
 
-    public void untagMuscles(int id, MuscleGroup muscleGroup) {
+    public boolean untagMuscles(int id, MuscleGroup muscleGroup) {
         EnumSet<MuscleGroup> set = liftMuscleGroups.get(id);
         if (set == null) {
-            return;
+            return false;
         }
-        set.remove(muscleGroup);
+        // Returns true if the set contained the element
+        boolean isRemoved = set.remove(muscleGroup);
+
+        if (isRemoved) {
+            logger.log(Level.INFO, "Untagged lift ID " + id + " with " + muscleGroup);
+        }
+        return isRemoved;
     }
 
     public Set<MuscleGroup> getMusclesFor(int id) {

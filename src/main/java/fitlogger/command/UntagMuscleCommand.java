@@ -25,7 +25,12 @@ public class UntagMuscleCommand extends EditMuscleTagCommand {
      */
     @Override
     public void execute(Storage storage, WorkoutList workouts, Ui ui, UserProfile profile) {
-        dictionary.untagMuscles(id, muscle);
-        ui.showMessage("Removed " + muscle.displayName() + " from lift ID: " + id);
+        boolean wasRemoved = dictionary.untagMuscles(id, muscle);
+
+        if (wasRemoved) {
+            ui.showMessage("Removed " + muscle.displayName() + " from lift ID: " + id);
+        } else {
+            ui.showMessage(muscle.displayName() + " was not found on lift ID: " + id);
+        }
     }
 }

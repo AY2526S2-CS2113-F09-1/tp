@@ -25,7 +25,12 @@ public class TagMuscleCommand extends EditMuscleTagCommand {
      */
     @Override
     public void execute(Storage storage, WorkoutList workouts, Ui ui, UserProfile profile) {
-        dictionary.tagMuscles(id, muscle);
-        ui.showMessage("Added " + muscle.displayName() + " to lift " + id);
+        boolean wasAdded = dictionary.tagMuscles(id, muscle);
+
+        if (wasAdded) {
+            ui.showMessage("Added " + muscle.displayName() + " to lift " + id);
+        } else {
+            ui.showMessage(muscle.displayName() + " is already tagged to lift " + id);
+        }
     }
 }
