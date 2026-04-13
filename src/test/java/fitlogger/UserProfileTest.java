@@ -1,6 +1,8 @@
 package fitlogger;
 
+import fitlogger.command.ClearProfileCommand;
 import fitlogger.profile.UserProfile;
+import fitlogger.ui.Ui;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -83,5 +85,19 @@ public class UserProfileTest {
         profile.setName("Charlie");
         String result = profile.toFileFormat();
         assertEquals("name: Charlie height: -1.0 weight: -1.0", result);
+    }
+
+    @Test
+    public void execute_clearCommand_resetsAllFields() {
+        UserProfile profile = new UserProfile();
+        profile.setName("Alice");
+        profile.setHeight(1.75);
+
+        ClearProfileCommand clear = new ClearProfileCommand();
+        clear.execute(null, null, new Ui(), profile);
+
+        assertNull(profile.getName());
+        assertEquals(-1.0, profile.getHeight(), 0.001);
+        assertEquals(-1.0, profile.getWeight(), 0.001);
     }
 }

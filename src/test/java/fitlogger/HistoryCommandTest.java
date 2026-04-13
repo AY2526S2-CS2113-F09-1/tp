@@ -100,7 +100,7 @@ class HistoryCommandTest {
 
         List<String> results = ui.getOutputs();
         String expectedHeader = "Here's your past exercises:";
-        String expectedWorkout = "1. [Run] test 1 (Date: 2026-03-20) (Distance: 1.0km, Duration: 1.0 mins)";
+        String expectedWorkout = "1. [Run] test 1 (Date: 2026-03-20) (Distance: 1.00km, Duration: 1.00 mins)";
 
         assertTrue(results.contains(expectedHeader));
         // Stitching NoNewline + printWorkout output
