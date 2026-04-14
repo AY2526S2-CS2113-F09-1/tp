@@ -369,7 +369,7 @@ Displays the total distance you have run. You can optionally specify a number of
 
 Format: `view-total-mileage [DAYS]`
 
-- `[DAYS]` — a non-negative integer. Filters distance to runs within the last X days, excluding the current day (i.e. if `DAYS` = 1, mileage shown will include yesterday and today's runs)
+- `[DAYS]` — a non-negative integer. Filters distance to runs within the last X days, excluding the current day (i.e. if `DAYS` = 1, mileage shown will include yesterday and today's runs, `DAYS` = 0 show today's runs only)
 - If `[DAYS]` is omitted, the total all-time mileage is displayed.
 - Distance is formatted to 2 decimal places to avoid scientific notation.
 
