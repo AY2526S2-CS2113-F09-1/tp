@@ -21,7 +21,7 @@ Displays all available exercise shortcuts and their IDs, for both lift and run c
 Format: `view-database`
 
 - Shortcuts are listed separately for **Strength Shortcuts** and **Run Shortcuts**.
-- The database comes pre-loaded with common exercises.
+- The database comes pre-loaded with common exercises and their muscle groups.
 - Custom shortcuts you have added with `add-shortcut` also appear here.
 
 Example output:
