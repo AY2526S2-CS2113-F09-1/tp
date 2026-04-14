@@ -80,6 +80,13 @@ Wrote the following sections:
 
 - [Pull Requests authored](https://github.com/AY2526S2-CS2113-F09-1/tp/pulls?q=is%3Apr+author%3Adinvsh)
 
+### Contributions to testing
+
+Implemented and updated comprehensive JUnit tests to ensure application stability and validate defensive programming measures:
+- **Parser Validation Testing:** Wrote and updated test cases to verify the `Parser` strictly enforces input boundaries, including catching integer overflows (e.g., handling massive numbers with `+` signs), rejecting scientific notation, and blocking reserved storage delimiters (`|` and `/`).
+- **Shortcut System & State Validation:** Engineered JUnit tests for `ExerciseDictionary` and the related shortcut commands to ensure custom shortcuts are correctly added, resolved, and deleted without corrupting memory state.
+- **Cross-Feature Integration Testing:** Updated relevant test files across the suite to align with the new parser rules and verified the "phantom tag" wipe logic, ensuring that overwriting or deleting a shortcut ID properly clears its associated `EnumSet` of `MuscleGroup` tags.
+
 ---
 
 ## Contributions to the Developer Guide (Extracts)
