@@ -188,7 +188,7 @@ class ViewCalendarCommandTest {
     }
 
     @Test
-    void execute_monthWith30Days_april_showsCorrectMaxDay() throws FitLoggerException {
+    void execute_monthWith30Daysapril_showsCorrectMaxDay() throws FitLoggerException {
         WorkoutList workouts = new WorkoutList();
         Storage storage = new Storage();
         UserProfile profile = new UserProfile();
@@ -207,7 +207,7 @@ class ViewCalendarCommandTest {
     }
 
     @Test
-    void execute_monthWith31Days_january_showsCorrectMaxDay() throws FitLoggerException {
+    void execute_monthWith31Daysjanuary_showsCorrectMaxDay() throws FitLoggerException {
         WorkoutList workouts = new WorkoutList();
         Storage storage = new Storage();
         UserProfile profile = new UserProfile();
