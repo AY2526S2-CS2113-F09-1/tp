@@ -21,7 +21,7 @@ Displays all available exercise shortcuts and their IDs, for both lift and run c
 Format: `view-database`
 
 - Shortcuts are listed separately for **Strength Shortcuts** and **Run Shortcuts**.
-- The database comes pre-loaded with common exercises.
+- The database comes pre-loaded with common exercises and their muscle groups.
 - Custom shortcuts you have added with `add-shortcut` also appear here.
 - Ignores all trailing inputs
 
@@ -342,18 +342,23 @@ Expected error:
 
 Shows only the workouts from your history that target a specific muscle group.
 
-Format: `filter <MUSCLE_GROUP>`
+Format: `filter <MUSCLE_GROUP> [<MUSCLE_GROUP2> ...]`
 
-- The `<MUSCLE_GROUP>` must be a valid group from the database (e.g., `pecs`, `delts`, `quads`).
+- The `<MUSCLE_GROUP>` must be a valid group from the database (e.g., `pecs`, `delts`, `quads`, `upper_back`, `lower_back`).
+- Multi-word muscle groups must use underscores (e.g., `upper_back` for "upper back", `lower_back` for "lower back").
+- Supports filtering by multiple muscle groups (space-separated or comma-separated).
 - Only **Strength Workouts** that have been tagged with the specified muscle group will be displayed.
 - Run workouts are currently excluded from this filter.
 
-Example:
-- `filter delts`
+Examples:
+- `filter delts` — Shows workouts targeting delts
+- `filter upper_back` — Shows workouts targeting upper back
+- `filter pecs triceps` — Shows workouts targeting either pecs or triceps
+- `filter quads, hamstring, glutes` — Shows workouts targeting any of these muscle groups
 
 Sample output when matches exist:
-`Workouts matching category [delts]:`
-`1. Overhead Press (Date: 2026-04-03) (40.0kg, 3 sets of 8 reps)`
+`Workouts matching category [upper back]:`
+`1. Deadlift (Date: 2026-04-03) (100.0kg, 3 sets of 5 reps)`
 
 Sample output when no matches exist:
 `No workouts found.`
@@ -362,9 +367,9 @@ Invalid input example:
 `filter`
 
 Expected error:
-`Please specify a muscle group. Usage: filter <muscle_group>`
+`Please specify a muscle group. Usage: filter <muscle_group> [<muscle_group2> ...]`
 
-> Tip: Use `view-muscle-groups` to see the full list of available categories you can use with this command.
+> Tip: Use `view-muscle-groups` to see the full list of available categories you can use with this command. Multi-word groups like "upper back" should be typed as `upper_back` with an underscore.
 
 ---
 
@@ -374,7 +379,7 @@ Displays the total distance you have run. You can optionally specify a number of
 
 Format: `view-total-mileage [DAYS]`
 
-- `[DAYS]` — a non-negative integer. Filters distance to runs within the last X days, excluding the current day (i.e. if `DAYS` = 1, mileage shown will include yesterday and today's runs)
+- `[DAYS]` — a non-negative integer. Filters distance to runs within the last X days, excluding the current day (i.e. if `DAYS` = 1, mileage shown will include yesterday and today's runs, `DAYS` = 0 show today's runs only)
 - If `[DAYS]` is omitted, the total all-time mileage is displayed.
 - Distance is formatted to 2 decimal places to avoid scientific notation.
 
@@ -785,7 +790,7 @@ Output:
 | **Untag Muscle**           | `untag-muscle <ID> <muscle>`                     | `untag-muscle 1 quads`              |
 | **Train Muscles**          | `train <muscle>`                                 | `train glutes`                      |
 | **History**                | `history [NUMBER]`                               | `history 5`                         |
-| **Filter Workout**         | `filter <MUSCLE_GROUP>`                          | `filter delts`                      |
+| **Filter Workout**         | `filter <MUSCLE_GROUP> [<MUSCLE_GROUP2> ...]`  | `filter upper_back`                 |
 | **Delete Workout**         | `delete <index>`                                 | `delete 2`                          |
 | **Search by Date**         | `search-date <YYYY-MM-DD>`                       | `search-date 2026-03-15`            |
 | **View Calendar**          | `view-calendar <YYYY-MM>`                        | `view-calendar 2026-04`             |

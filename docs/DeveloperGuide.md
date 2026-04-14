@@ -424,13 +424,6 @@ and constructs a `RunWorkout` object.
 This polymorphic design allows `WorkoutList` to store both types in a single `ArrayList<Workout>`. 
 Domain validation is enforced directly in the setters, keeping invalid state from ever being stored.
 
-The two run-specific fields and their constraints are:
-
-|Field|Type|Constraint|
-|---|---|---|
-|`distance`|`double`|Must be finite and > 0|
-|`durationMinutes`|`double`|Must be finite and > 0|
-
 ### Sequence of events
 The sequence diagram below shows how a run is logged when the user enters `add-run Jog d/5 t/30`.
 ![AddRunWorkoutSequenceDiagram](images/AddRunWorkoutSequenceDiagram.png)
@@ -444,13 +437,11 @@ The interaction between the `Parser` and the `RunWorkout` constructor is designe
 
 **Sequence of validation:**
 
-1. **Tokenization:** `Parser` identifies the `d/` and `t/` flags.
-
-2. **Format Validation:** `Parser` checks that the strings match a plain-decimal regex (rejecting `8e1`).
-
-3. **Instance Creation:** The `RunWorkout` constructor is invoked.
-
-4. **Domain Validation:** The constructor calls internal setters; if any field violates a constraint, construction fails.
+- **Tokenization:** `Parser` identifies the `d/` and `t/` flags.
+- **Format Validation:** `Parser` checks that the strings match a plain-decimal regex (rejecting `8e1`).
+- **Delimiter Validation:** The run name is validated against reserved storage delimiters (`|` and `/`); a `FitLoggerException` is thrown if either is present.
+- **Instance Creation:** The `RunWorkout` constructor is invoked.
+- **Domain Validation:** The constructor calls internal setters; if any field violates a constraint, construction fails.
 
 #### Storage format
 
@@ -473,15 +464,22 @@ reconstructing the workout list on startup.
 
 Validation is split between `Parser.parseAddRun(...)` (format-level) and `RunWorkout` setters (domain-level):
 
-|Input error|Error message shown|
-|---|---|
-|Missing arguments|`Missing arguments for add-run.` + usage hint|
-|Missing flag (e.g. no `d/`)|`Invalid format for add-run.` + usage hint|
-|Non-numeric distance/duration|Parse error with usage hint|
-|Scientific notation distance/duration|Parse error with usage hint|
-|Zero or negative distance|`Distance must be a positive number.`|
-|Zero or negative duration|`Duration must be a positive number.`|
-|Non-finite value (`NaN`, `Infinity`)|Parse error with usage hint|
+| Input error                                        | Error message shown                                                 |
+|----------------------------------------------------|---------------------------------------------------------------------|
+| Missing arguments                                  | `Missing arguments for add-run.` + usage hint                       |
+| Missing flag (e.g. no `t/` or `d/`)                | `Invalid format for add-run.` + usage hint                          |
+| Missing flag (no description)                      | `Workout name cannot be blank.`                         |
+| Flags in wrong order (e.g. `t/` before `d/`)       | `Invalid format for add-run.` + usage hint                          |
+| Non-numeric distance/duration                      | `Distance and duration must be valid decimal numbers.` + usage hint |
+| Scientific notation distance/duration (e.g. `5e1`) | `Distance and duration must be valid decimal numbers.` + usage hint |
+| Zero or negative distance                          | `Distance must be a positive number.`                               |
+| Zero or negative duration                          | `Duration must be a positive number.`                               |
+| Non-finite value (`NaN`, `Infinity`)               | `Distance and duration must be realistic positive numbers.`         |
+| Distance exceeds 1000 km                           | `Distance cannot exceed 1000.0km.`                                  |
+| Duration exceeds 14400 mins                        | `Duration cannot exceed 10 days (14400 minutes).`                   |
+| Extra text after duration value                    | `Invalid format. No additional text allowed after duration.`        |
+| Name contains `\|` or `/`                          | `Run name must not contain '\|' or '/' — these characters are reserved by the storage format.`                            |
+| Non-finite value (`NaN`, `Infinity`)               |Parse error with usage hint|
 
 #### Design considerations
 
@@ -512,8 +510,8 @@ The `view-total-mileage` command provides hybrid athletes with an automated way 
 
 `view-total-mileage [DAYS]`
 
-- `DAYS`: Optional non-negative integer (e.g., `0` for today, `30` for past month).
-
+- `DAYS`: Optional non-negative integer (e.g., `0` for today, `30` for past month). Filters distance to runs within the last X days, excluding the current day (i.e. if `DAYS` = 1, mileage shown will include yesterday and today's runs)
+- Distance is formatted to 2 decimal places to avoid scientific notation.
 - If omitted, calculates all-time mileage.
 
 
@@ -598,7 +596,7 @@ These commands give users a persistent identity within FitLogger by managing a `
 
 - `UpdateProfileCommand`: Facilitates partial updates, allowing users to modify a single field without affecting others.
 
-- `ClearProfileCommand`: Resets all profile attributes to an "unset" state.
+- `ClearProfileCommand`: Resets all profile attributes to an "unset" state. Ignores all trailing arguments.
 
 
 Command formats:
@@ -719,7 +717,7 @@ The system has four parts:
 - `ExerciseDictionary`: the in-memory data model storing ID-to-name mappings for lifts and runs.
 - `AddShortcutCommand`: lets users extend the database with their own shortcuts at runtime.
 - `DeleteShortcutCommand`: lets users cleanly remove custom shortcuts and their associated metadata.
-- `ViewDatabaseCommand`: lets users see what shortcuts are currently available.
+- `ViewDatabaseCommand`: lets users see available shortcuts. It supports a detailed mode (`view-detailed-database`) which displays exercise entries alongside their associated muscle group tags.
 
 The database ships with four default lift shortcuts and three default run shortcuts. Custom shortcuts added via `add-shortcut` are permanently persisted to the save file alongside the user's profile and workout history.
 
@@ -778,6 +776,12 @@ This snapshot demonstrates how the three internal maps manage their data:
 2. Retrieves the exercise name for the success message.
 3. Calls `dictionary.removeLiftShortcut(id)` or `dictionary.removeRunShortcut(id)` based on `type`.
 4. Displays a confirmation message via `Ui`.
+
+**`ViewDatabaseCommand.execute(...)`** performs:
+
+1. Retrieves the full lift and run maps from `ExerciseDictionary`.
+2. If detailed mode is active, it iterates through the `liftMuscleGroups` map to fetch the `EnumSet` of tags for each ID.
+3. Formats the output via `Ui`, appending the muscle groups in parentheses (e.g., `(Muscles: pecs, delts)`) next to each exercise name.
 
 The sequence diagram below shows this flow for `add-shortcut lift 5 Romanian Deadlift`.
 
@@ -1462,6 +1466,23 @@ This results in $O(1)$ lookup time and a significantly smaller memory footprint,
 
 Note that multi-word muscle groups (e.g. `upper back`) are supported by normalising spaces to underscores before enum lookup, so the user does not need to type `UPPER_BACK` themselves.
 
+**`FilterTypeCommand.execute(...)`** and its parser
+
+`FilterTypeCommand` allows users to filter their workout history by one or more muscle groups. Unlike `train` which searches a predetermined muscle group, `filter` takes user-specified categories and matches them against workout muscle groups:
+
+1. `parseCategories(String input)` parses comma-separated and space-separated muscle group names.
+2. Multi-word muscle groups (e.g. `upper_back`, `lower_back`) are supported by converting underscores to spaces, which matches the enum's `displayName()` output format.
+3. The parsed categories are stored in a `Set<String>` with lowercase display names (spaces, not underscores).
+4. During execution, for each workout, the command retrieves its muscle groups and checks if any match the target categories using case-insensitive comparison.
+5. Matching workouts are collected and displayed to the user.
+
+**Parsing format supported by `parseCategories(String)`:**
+- Single muscle groups: `filter pecs` or `filter delts`
+- Multi-word muscle groups with underscore: `filter upper_back` (converted to "upper back")
+- Multiple groups separated by spaces: `filter pecs triceps`
+- Multiple groups separated by commas: `filter quads,hamstring,glutes`
+- Mixed formats: `filter pecs, upper_back triceps`
+
 ---
 
 #### Persistence of muscle group tags
@@ -1523,6 +1544,7 @@ The `history` command provides a chronological view of all logged workouts. With
 `history [NUMBER]`
 - `[NUMBER]`: Optional positive integer.
 - If omitted, the command displays the entire workout list.
+- Each workout is numbered for use with `edit` and `delete` (i.e. index shown corresponds to index of workout in the list)
 
 
 #### Design overview
@@ -1650,13 +1672,16 @@ FitLogger provides a blazingly fast, distraction-free environment to log mixed-m
 ## User Stories
 
 |Version| As a ... | I want to ... | So that I can ...|
-|--------|----------|---------------|------------------|
-|v1.0|new user|see usage instructions|refer to them when I forget how to use the application|
-|v1.0|user|delete an unwanted workout by index|remove duplicate or accidental entries from my history|
-|v1.0|user|exit the application safely|save my workouts before the program closes|
-|v2.0|user|edit a wrongly entered workout field|correct logging mistakes without deleting and recreating the workout|
-|v2.0|user|search workouts by date|review what I trained on a specific day|
-|v2.0|user|receive clear errors for malformed commands|understand what went wrong and how to correct my input|
+|----|----------|---------------|------------------|
+|v1.0| new user |see usage instructions|refer to them when I forget how to use the application|
+|v1.0| user     |delete an unwanted workout by index|remove duplicate or accidental entries from my history|
+|v1.0| user     |exit the application safely|save my workouts before the program closes|
+|v1.0| user     |save my data to a local file|my logs persist after I close the application|
+|v2.0| user     |edit a wrongly entered workout field|correct logging mistakes without deleting and recreating the workout|
+|v2.0| user     |search workouts by date|review what I trained on a specific day|
+|v2.0| user     |receive clear errors for malformed commands|understand what went wrong and how to correct my input|
+|v2.0| user     |search for last lift stats for an activity|I know what weight and reps to aim for in the current session to ensure progressive training|
+|v2.0| user     |see my best efforts|I can track my training progress|
 
 ## Non-Functional Requirements
 
@@ -1817,6 +1842,84 @@ Start with a clean or disposable save file when testing destructive commands suc
 3. Restart FitLogger.
    - Expected: previously saved workouts are loaded again, confirming that exit saved successfully.
 
+### Testing `lastlift`
+
+1. Add two lifts of the same exercise.
+    - Command: `add-lift Bench Press w/80 s/3 r/8`
+    - Command: `add-lift Bench Press w/90 s/4 r/6`
+    - Expected: Both are added successfully.
+
+2. Retrieve the most recent lift.
+    - Command: `lastlift Bench Press`
+    - Expected: Displays the **second** entry (90.0kg, 4 sets, 6 reps), not the first.
+
+3. Test case-insensitivity.
+    - Command: `lastlift bench press`
+    - Expected: Same result as above.
+
+4. Test with no matching exercise.
+    - Command: `lastlift Squat`
+    - Expected: `No record found for exercise: Squat`
+
+5. Test blank input.
+    - Command: `lastlift`
+    - Expected: `Please specify an exercise name. Usage: lastlift <EXERCISE_NAME>`
+
+6. Confirm run workouts are ignored.
+    - Command: `add-run Bench Press d/5 t/30`
+    - Command: `lastlift Bench Press`
+    - Expected: Still shows the most recent **lift** entry, not the run.
+
+---
+
+### Testing `pr`
+
+1. Add multiple lifts of the same exercise with different weights.
+    - Command: `add-lift Deadlift w/100 s/3 r/5`
+    - Command: `add-lift Deadlift w/150 s/1 r/5`
+    - Command: `add-lift Deadlift w/120 s/3 r/5`
+
+2. Retrieve the personal record.
+    - Command: `pr Deadlift`
+    - Expected: Displays the **second** entry (150.0kg) — the highest weight, not the most recent.
+
+3. Test with run workouts.
+    - Command: `add-run Easy Run d/5 t/30`
+    - Command: `add-run Easy Run d/5 t/20`
+    - Command: `pr Easy Run`
+    - Expected: Displays the entry with **shortest duration** (20.0 mins) — the fastest time.
+
+4. Test with no matching exercise.
+    - Command: `pr Pull-up`
+    - Expected: `No record found for exercise: Pull-up`
+
+5. Test blank input.
+    - Command: `pr`
+    - Expected: `Please specify an exercise name. Usage: pr <EXERCISE_NAME>`
+
+---
+
+### Testing `save` and `load` (Storage)
+
+1. Add some workouts and exit cleanly.
+    - Command: `add-lift Squat w/100 s/5 r/5`
+    - Command: `add-run Easy Run d/5 t/30`
+    - Command: `exit`
+    - Expected: `Workouts saved.` followed by `Goodbye! See you at your next workout!`
+
+2. Restart FitLogger.
+    - Command: `history`
+    - Expected: Both workouts from the previous session are restored correctly.
+
+3. Test corrupted save file handling.
+    - Open `data/fitlogger.txt` manually and add a line like `CORRUPTED | bad data`.
+    - Restart FitLogger.
+    - Expected: A warning is printed for the corrupted line but all valid workouts still load correctly.
+
+4. Test first run (no save file).
+    - Delete `data/fitlogger.txt`.
+    - Restart FitLogger.
+    - Expected: FitLogger starts with an empty workout list and no error is shown.
 
 #### Profile Management
 

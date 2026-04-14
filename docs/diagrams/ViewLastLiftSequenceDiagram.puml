@@ -2,20 +2,41 @@
 actor User
 participant ":FitLogger" as FL
 participant ":Parser" as P
-participant ":ViewLastLiftCommand" as CMD
+participant "command:ViewLastLiftCommand" as CMD
 participant ":WorkoutList" as WL
 participant ":Ui" as UI
 
-User -> FL : lastlift Bench Press
-FL -> P : parse(...)
-P --> FL : :ViewLastLiftCommand
+-> FL : "lastlift Bench Press"
+activate FL
+
+FL -> P : parse("lastlift...", workouts, dictionary)
+activate P
+
+P -> CMD ** : new ViewLastLiftCommand("Bench Press")
+P --> FL : command
+deactivate P
+
 FL -> CMD : execute(storage, workouts, ui, profile)
-CMD -> WL : search in reverse for matching StrengthWorkout
-WL --> CMD : most recent match (or null)
-alt match found
+activate CMD
+
+CMD -> WL : getWorkouts()
+activate WL
+WL --> CMD : list
+deactivate WL
+
+opt match found
     CMD -> UI : showLastLift(lift)
-    UI --> User : displays stats
+    activate UI
+    UI --> CMD
+    deactivate UI
 else no match
     CMD -> UI : showMessage("No record found...")
+    activate UI
+    UI --> CMD
+    deactivate UI
 end
+
+CMD --> FL
+deactivate CMD
+deactivate FL
 @enduml

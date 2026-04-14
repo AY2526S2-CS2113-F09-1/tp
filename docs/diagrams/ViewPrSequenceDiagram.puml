@@ -1,21 +1,44 @@
 @startuml ViewPrSequenceDiagram
 actor User
+hide footbox
+
 participant ":FitLogger" as FL
 participant ":Parser" as P
-participant ":ViewPrCommand" as CMD
+participant "command:ViewPrCommand" as CMD
 participant ":WorkoutList" as WL
 participant ":Ui" as UI
 
-User -> FL : pr Bench Press
-FL -> P : parse(...)
-P --> FL : :ViewPrCommand
+-> FL : "pr Bench Press"
+activate FL
+
+FL -> P : parse("pr...", workouts, dictionary)
+activate P
+
+P -> CMD ** : new ViewPrCommand("Bench Press")
+P --> FL : command
+deactivate P
+
 FL -> CMD : execute(storage, workouts, ui, profile)
-CMD -> WL : scan all entries for matching exercise
-WL --> CMD : entry with highest weight or longest distance (or null)
-alt PR found
+activate CMD
+
+CMD -> WL : getWorkouts()
+activate WL
+WL --> CMD : list
+deactivate WL
+
+opt PR found
     CMD -> UI : showPr(prWorkout)
-    UI --> User : displays PR stats
+    activate UI
+    UI --> CMD
+    deactivate UI
 else no match
     CMD -> UI : showMessage("No record found...")
+    activate UI
+    UI --> CMD
+    deactivate UI
 end
+
+CMD --> FL
+deactivate CMD
+deactivate FL
 @enduml

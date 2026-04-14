@@ -1,35 +1,35 @@
 @startuml ViewPrClassDiagram
 abstract class Command {
-    +execute(storage, workouts, ui, profile)
-    +isExit() : boolean
+    + execute(Storage, WorkoutList, Ui, UserProfile): void
+    + isExit(): boolean
 }
 
 class ViewPrCommand {
-    -exerciseId : String
-    +execute(storage, workouts, ui, profile)
+    - exerciseId: String
+    + execute(Storage, WorkoutList, Ui, UserProfile): void
 }
 
 class WorkoutList {
-    +getSize() : int
-    +getWorkoutAtIndex(index) : Workout
+    + getSize(): int
+    + getWorkoutAtIndex(int): Workout
 }
 
 class StrengthWorkout {
-    +getWeight() : double
+    + getWeight(): double
 }
 
 class RunWorkout {
-    +getDistance() : double
+    + getDistance(): double
 }
 
 class Ui {
-    +showPr(workout : Workout)
-    +showMessage(message : String)
+    + showPr(Workout): void
+    + showMessage(String): void
 }
 
 Command <|-- ViewPrCommand
-ViewPrCommand --> WorkoutList
-ViewPrCommand --> Ui
-WorkoutList --> StrengthWorkout
-WorkoutList --> RunWorkout
+ViewPrCommand --> WorkoutList : reads >
+ViewPrCommand --> Ui : uses >
+WorkoutList --> StrengthWorkout : contains >
+WorkoutList --> RunWorkout : contains >
 @enduml

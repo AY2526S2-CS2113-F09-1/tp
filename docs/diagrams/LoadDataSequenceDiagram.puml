@@ -1,18 +1,30 @@
 @startuml LoadDataSequenceDiagram
 participant ":FitLogger" as FL
 participant ":Storage" as ST
-participant ":Scanner" as SC
+participant "scanner:Scanner" as SC
 
 FL -> ST : loadData(profile)
-ST -> ST : check if file exists
+activate ST
+
 alt file does not exist
     ST --> FL : empty list
 else file exists
-    ST -> SC : new Scanner(file)
-    ST -> ST : parseProfile(line 1, profile)
+    ST -> SC ** : new Scanner(file)
+
+    ST -> ST : parseProfile(line, profile)
+    activate ST
+    ST --> ST
+    deactivate ST
+
     loop for each remaining line
         ST -> SC : nextLine()
-        ST --> FL : Workout object (R or L)
+        activate SC
+        SC --> ST : line
+        deactivate SC
     end
+
+    ST --> FL : workouts list
 end
+
+deactivate ST
 @enduml

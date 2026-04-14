@@ -44,7 +44,12 @@ FitLogger is a command-line fitness tracking application for hybrid athletes who
   - `profile view` and `profile set` commands (Enhancement 6)
   - muscle commands (Enhancement 14)
   - `history` command (Enhancement 15)
-- Contributed UML diagrams: `ProfileCommandDiagram`.
+
+#### UML Diagrams Contributed
+
+I authored the following diagrams:
+`AddRunWorkoutClassDiagram`, `AddRunWorkoutSequenceDiagram`, `HistorySequenceDiagram`, `MuscleTaggingClassDiagram`, `MuscleTaggingObjectDiagram`, `ProfileInheritanceDiagram`,
+`ProfileUpdateSequenceDiagram`, `TagMuscleSequenceDiagram`, `ViewShoeMileageSequenceDiagram`
 
 ### Contributions to Team-Based Tasks
 

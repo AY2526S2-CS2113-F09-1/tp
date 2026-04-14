@@ -1,32 +1,32 @@
 @startuml ViewLastLiftClassDiagram
 abstract class Command {
-    +execute(storage, workouts, ui, profile)
-    +isExit() : boolean
+    + execute(Storage, WorkoutList, Ui, UserProfile): void
+    + isExit(): boolean
 }
 
 class ViewLastLiftCommand {
-    -exerciseId : String
-    +execute(storage, workouts, ui, profile)
+    - exerciseId: String
+    + execute(Storage, WorkoutList, Ui, UserProfile): void
 }
 
 class WorkoutList {
-    +getSize() : int
-    +getWorkoutAtIndex(index) : Workout
+    + getSize(): int
+    + getWorkoutAtIndex(int): Workout
 }
 
 class StrengthWorkout {
-    +getWeight() : double
-    +getSets() : int
-    +getReps() : int
+    + getWeight(): double
+    + getSets(): int
+    + getReps(): int
 }
 
 class Ui {
-    +showLastLift(lift : StrengthWorkout)
-    +showMessage(message : String)
+    + showLastLift(StrengthWorkout): void
+    + showMessage(String): void
 }
 
 Command <|-- ViewLastLiftCommand
-ViewLastLiftCommand --> WorkoutList
-ViewLastLiftCommand --> Ui
-WorkoutList --> StrengthWorkout
+ViewLastLiftCommand --> WorkoutList : reads >
+ViewLastLiftCommand --> Ui : uses >
+WorkoutList --> StrengthWorkout : contains >
 @enduml
