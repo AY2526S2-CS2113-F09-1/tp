@@ -510,8 +510,8 @@ The `view-total-mileage` command provides hybrid athletes with an automated way 
 
 `view-total-mileage [DAYS]`
 
-- `DAYS`: Optional non-negative integer (e.g., `0` for today, `30` for past month).
-
+- `DAYS`: Optional non-negative integer (e.g., `0` for today, `30` for past month). Filters distance to runs within the last X days, excluding the current day (i.e. if `DAYS` = 1, mileage shown will include yesterday and today's runs)
+- Distance is formatted to 2 decimal places to avoid scientific notation.
 - If omitted, calculates all-time mileage.
 
 
