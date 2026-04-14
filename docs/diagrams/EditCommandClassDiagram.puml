@@ -1,4 +1,4 @@
-@startuml
+@startuml EditCommandClassDiagram
 hide circle
 skinparam classAttributeIconSize 0
 

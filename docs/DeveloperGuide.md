@@ -278,7 +278,7 @@ Responsibilities remain clearly separated:
 
 The class diagram below shows the inheritance structure underpinning this feature.
 
-![AddWorkoutClassDiagram.png](images/AddWorkoutClassDiagram.png)
+![AddWorkoutClassDiagram](images/AddWorkoutClassDiagram.png)
 
 `StrengthWorkout` extends the abstract `Workout` base class, which also serves as the
 parent for `RunWorkout`. This polymorphic design allows `WorkoutList` to store both types
@@ -291,7 +291,7 @@ both `add-lift` and `add-run` — no separate `AddLiftCommand` class is needed.
 The sequence diagram below shows how a lift is logged when the user enters
 `add-lift Bench w/80 s/3 r/8`.
 
-![AddLiftSequenceDiagram.png](images/AddLiftSequenceDiagram.png)
+![AddLiftSequenceDiagram](images/AddLiftSequenceDiagram.png)
 
 The `StrengthWorkout` object is created inline during parsing and passed directly into
 `AddWorkoutCommand`. The command does not store a reference to `Parser` or `Storage` —
@@ -533,7 +533,7 @@ The command follows the standard **Command Pattern**. It is instantiated by the 
 
 The following diagram illustrates how the command interacts with the `WorkoutList` and the `RunWorkout` objects to aggregate data.
 
-![iewShoeMileageSequenceDiagram](images/ViewShoeMileageSequenceDiagram.png)
+![ViewShoeMileageSequenceDiagram](images/ViewShoeMileageSequenceDiagram.png)
 
 #### Component-level behavior
 
@@ -727,7 +727,7 @@ The database ships with four default lift shortcuts and three default run shortc
 
 The class diagram below shows the relationships between the components.
 
-![Add Shortcut Class Diagram](images/AddShortcutClassDiagram.png)
+![AddShortcutClassDiagram](images/AddShortcutClassDiagram.png)
 
 `ExerciseDictionary` is the shared data model. `AddShortcutCommand` mutates it; `ViewDatabaseCommand` reads from it. Both extend the abstract `Command` base class, keeping them consistent with the rest of FitLogger's command pipeline.
 
@@ -737,7 +737,7 @@ The class diagram below shows the relationships between the components.
 
 The object diagram below illustrates a snapshot of the `ExerciseDictionary` in memory after a user has launched the app (loading the default exercises like Squat and Easy Run) and added a custom shortcut via `add-shortcut lift 99 Muscle Up`.
 
-![Exercise Dictionary Object Diagram](images/ExerciseDictionaryObjectDiagram.png)
+![ExerciseDictionaryObjectDiagram](images/ExerciseDictionaryObjectDiagram.png)
 
 This snapshot demonstrates how the three internal maps manage their data:
 - `liftDictionary` and `runDictionary` map integer IDs to their respective exercise name strings.
@@ -781,13 +781,13 @@ This snapshot demonstrates how the three internal maps manage their data:
 
 The sequence diagram below shows this flow for `add-shortcut lift 5 Romanian Deadlift`.
 
-![Add Shortcut Sequence Diagram](images/AddShortcutSequenceDiagram.png)
+![AddShortcutSequenceDiagram](images/AddShortcutSequenceDiagram.png)
 
 #### Shortcut resolution in `add-lift` and `add-run`
 
 Using a shortcut ID in `add-lift` (e.g. `add-lift 2 w/80 s/3 r/8`) triggers a resolution step inside `Parser.parseAddLift(...)` before the `StrengthWorkout` is created. The sequence diagram below shows this flow.
 
-![Shortcut Resolution Sequence Diagram](images/ShortcutResolutionSequenceDiagram.png)
+![ShortcutResolutionSequenceDiagram](images/ShortcutResolutionSequenceDiagram.png)
 
 The resolution logic first checks whether the name token contains only digits:
 - If it does, the token is parsed using `parsePositiveIntegerWithinLimit(...)` and resolved through the relevant dictionary. A `null` return means the ID does not exist, and a `FitLoggerException` is thrown pointing the user to `view-database`.
@@ -858,7 +858,196 @@ search-date <YYYY-MM-DD>
 
 ---
 
-### Enhancement 9: Save Failure Handling in Commands
+### Enhancement 9: Filter workouts by muscle group (`FilterTypeCommand`)
+
+#### Purpose and user value
+
+`filter` lets users quickly review workouts targeting specific muscle groups. This is useful for planning training focus or reviewing progress on particular body parts without scanning the full history.
+
+Command formats supported:
+```
+filter <muscle_group>
+filter <muscle_group1> <muscle_group2>      (space-separated)
+filter <muscle_group1>, <muscle_group2>     (comma-separated)
+filter lower_back                           (multi-word with underscore)
+filter pecs, upper_back triceps             (mixed formats)
+```
+
+#### Design overview
+
+1. `Parser.parse(...)` dispatches `filter` directly to `FilterTypeCommand` constructor (no intermediate parse method).
+2. `FilterTypeCommand` receives raw arguments and calls private `parseCategories(String input)`.
+3. `parseCategories(...)` intelligently parses multiple input formats (space/comma/underscore-separated).
+4. `FilterTypeCommand.execute(...)` scans `WorkoutList` for strength workouts and matches muscle groups via `ExerciseDictionary`.
+5. Results are displayed grouped by the matched categories, or "No workouts found." if empty.
+
+#### Component-level behavior
+
+**`parseCategories(String input)` — intelligent multi-format parsing**
+
+Parses user input while supporting three separators: commas, spaces, and underscores (for multi-word groups).
+
+Algorithm:
+1. Return empty set if input is `null` or blank.
+2. Split by comma first: `String[] commaSeparated = input.split(",")`.
+3. For each comma-separated part:
+   - Split by whitespace: `String[] spaceSeparated = commaPart.trim().split("\\s+")`.
+   - For each space-separated part:
+     - Replace underscores with spaces: `part.replace('_', ' ')`.
+     - Lowercase and add to set: `categories.add(normalized.toLowerCase())`.
+4. Return the `Set<String>` of normalized, deduplicated categories.
+
+**Example parsing flows:**
+- Input: `"quads"` → Output: `{"quads"}`
+- Input: `"lower_back"` → Output: `{"lower back"}` (underscore converted to space)
+- Input: `"pecs triceps"` → Output: `{"pecs", "triceps"}` (space-split into two categories)
+- Input: `"quads, glutes"` → Output: `{"quads", "glutes"}` (comma and space both handled)
+- Input: `"lower_back pecs triceps"` → Output: `{"lower back", "pecs", "triceps"}` (mixed)
+
+**`FilterTypeCommand.execute(...)` — matching and display**
+
+1. Assert preconditions: `workouts != null`, `targetCategories != null`.
+2. If `targetCategories.isEmpty()`, show usage hint and return.
+3. Iterate through all workouts in `workoutList.getWorkouts()`.
+4. Filter for `StrengthWorkout` instances only (skip `RunWorkout`).
+5. For each strength workout:
+   - Retrieve shortcut ID via `dictionary.getShortcutIdFor(workout.getDescription())`.
+   - If ID exists (≠ -1), retrieve muscle groups: `dictionary.getMusclesFor(shortcutId)`.
+   - Call `matchesAnyCategory(muscleGroups)` to check if any target category matches.
+   - If match found, add to `filteredList`.
+6. Display separator line, header with category names, and `ui.showWorkoutList(filteredList)` (which includes final separator).
+
+**`matchesAnyCategory(Set<MuscleGroup> groups)` — matching logic**
+
+1. Iterate over muscle groups from the workout's exercise.
+2. Convert each to display format: `group.displayName().toLowerCase()`.
+3. Check if target categories contain this display name.
+4. Return `true` if any match found; `false` otherwise.
+
+The comparison uses display names (e.g., "lower back") not enum constants (e.g., "LOWER_BACK"), ensuring the parser's underscore-to-space conversion matches the comparison.
+
+#### Class-level design
+
+**Class Diagram: FilterTypeCommand Architecture**
+![FilterTypeCommandClassDiagram](images/FilterTypeCommandClassDiagram.png)
+
+`FilterTypeCommand` extends the abstract `Command` base class. It holds `targetCategories` (a `Set<String>`) and depends on `ExerciseDictionary` to look up muscle groups by exercise ID, `WorkoutList` to iterate through strength workouts, and `Ui` to display results. The command uses the `MuscleGroup` enum (14 values) for muscle group definitions, each with a `displayName()` method for user-friendly display.
+
+#### Sequence of events
+
+**Sequence Diagram: Execution of a `filter` Command (Scenario: Filtering by quads and glutes)**
+![FilterTypeCommandSequenceDiagram](images/FilterTypeCommandSequenceDiagram.png)
+
+`FilterTypeCommand.execute(...)` performs the following steps:
+
+1. Call private `parseCategories(...)` to convert user input into a normalized set of muscle group names (handling commas, spaces, and underscores).
+2. Display a header line and filtered results message.
+3. Loop through all workouts in `WorkoutList`, filtering for `StrengthWorkout` instances.
+4. For each strength workout, retrieve its shortcut ID via `ExerciseDictionary.getShortcutIdFor(...)`.
+5. If ID exists, retrieve its muscle groups via `ExerciseDictionary.getMusclesFor(...)` and check if any match the target categories.
+6. Add matching workouts to a filtered list.
+7. Display the filtered list via `ui.showWorkoutList(filteredList)`.
+8. If no matches are found, the display will show "No workouts found.".
+
+---
+
+#### Parser-level behavior
+
+**Parsing strategy across three date/calendar/filter commands:**
+
+All three commands (search-date, view-calendar, filter) follow a consistent pattern:
+
+| Command | Parser method | Input format | Validation |
+|---|---|---|---|
+| `search-date` | `parseSearchDate(...)` | `YYYY-MM-DD` | Uses `LocalDate.parse()` for ISO format validation |
+| `view-calendar` | `parseViewCalendar(...)` | `YYYY-MM` | Uses `YearMonth.parse()` for ISO format validation; defaults to current month if blank |
+| `filter` | None (direct constructor) | Flexible multi-format | Custom `parseCategories()` with space/comma/underscore support |
+
+**`parseSearchDate(String arguments)`** (review/reminder):
+
+```java
+private static Command parseSearchDate(String arguments) throws FitLoggerException {
+    if (arguments.isBlank()) {
+        throw new FitLoggerException(
+            "Missing arguments for search-date.\nUsage: search-date <YYYY-MM-DD>");
+    }
+    if (splitInput(arguments, " ", 2).length > 1) {
+        throw new FitLoggerException(
+            "Invalid format for search-date.\nUsage: search-date <YYYY-MM-DD>");
+    }
+    try {
+        return new SearchDateCommand(LocalDate.parse(arguments.trim()));
+    } catch (DateTimeParseException exception) {
+        throw new FitLoggerException(
+            "Invalid date format for search-date.\nUsage: search-date <YYYY-MM-DD>");
+    }
+}
+```
+
+Rejects extra arguments after the date; uses strict ISO format validation.
+
+**`parseViewCalendar(String arguments)`** (review/reminder):
+
+```java
+private static Command parseViewCalendar(String arguments) throws FitLoggerException {
+    try {
+        if (arguments.isBlank()) {
+            return new ViewCalendarCommand(YearMonth.now());
+        }
+        return new ViewCalendarCommand(YearMonth.parse(arguments));
+    } catch (DateTimeParseException e) {
+        throw new FitLoggerException(
+            "Invalid calendar format. Use YYYY-MM (e.g., view-calendar 2026-04)");
+    }
+}
+```
+
+Provides a graceful default (current month) if no argument is given; uses strict ISO format validation.
+
+**Filter parsing (inline in `parse()` method):**
+
+```java
+case "filter":
+    return new FilterTypeCommand(arguments, dictionary);
+```
+
+Delegates all parsing logic to `FilterTypeCommand.parseCategories(...)`, enabling complex multi-format support without polluting the `Parser` class. This keeps filtering concerns encapsulated within the command.
+
+---
+
+#### Validation and error handling
+
+| Input error | Error message shown |
+|---|---|
+| Empty/blank input | `Please specify a muscle group. Usage: filter <muscle_group> [<muscle_group2> ...]` |
+| Muscle group not in dictionary | No error; silently skipped during exercise lookup; command returns "No workouts found." |
+| Non-existent shortcut ID (during lookup) | No error; silently skipped (shortcut ID is internal, user cannot provide it) |
+| No strength workouts match | `No workouts found.` |
+
+---
+
+#### Design considerations
+
+**Aspect: Flexible input parsing (space vs. comma vs. underscore)**
+
+- **Current choice: Three-stage parsing (comma split → space split → underscore replace)** — Users can mix formats naturally without learning strict syntax. `filter pecs, upper_back triceps` works intuitively. The underscore notation (`upper_back`) maps cleanly to enum names (`UPPER_BACK`) and display names ("upper back"), creating a consistent internal representation.
+- **Alternative 1: Space-only separation** — Simpler parser, but multi-word groups like "upper back" would be ambiguous (is it two filters or one?).
+- **Alternative 2: Quotes required** — `filter "upper back"` would eliminate ambiguity but adds friction for CLI users accustomed to unquoted input.
+- **Alternative 3: Predefined single-word aliases** — e.g., `uback` for "upper back". Reduces parsing complexity but adds cognitive load for users.
+
+**Aspect: Handling multi-word muscle groups**
+
+- **Current choice: Underscore notation with automatic space conversion** — Aligns with Java enum naming conventions (`UPPER_BACK`). The `parseCategories()` method converts underscores to spaces before matching, so display names ("upper back") and user input (`upper_back`) align cleanly.
+- **Alternative: Full enum name wrapping** — Require users to know enum names (`UPPER_BACK`). Rejected because it's verbose and non-intuitive for end users.
+
+**Aspect: Case-insensitivity**
+
+- **Current choice: Lowercase all parsed categories before comparison** — Users can type `PECS`, `Pecs`, or `pecs`; all are handled identically. The comparison converts both display names and parsed input to lowercase.
+- **Alternative: Strict case matching** — Would reject `PECS` in favor of `pecs`. Rejected because CLI users expect natural case flexibility.
+
+---
+
+### Enhancement 10: Save Failure Handling in Commands
 
 #### Purpose and user value
 
@@ -898,7 +1087,7 @@ This logging configuration applies to messages emitted through Java's `Logger` A
 
 ---
 
-### Enhancement 10: `Storage` — `saveData()` and `loadData()`
+### Enhancement 11: `Storage` — `saveData()` and `loadData()`
 
 #### Purpose and user value
 `Storage` persists workout data between sessions. `saveData()` writes all workouts
@@ -975,7 +1164,7 @@ prefixed by `R` (run) or `L` (lift).
 
 ---
 
-### Enhancement 11: `ViewLastLiftCommand`
+### Enhancement 12: `ViewLastLiftCommand`
 
 #### Purpose and user value
 `ViewLastLiftCommand` lets users instantly retrieve the most recent stats for a
@@ -1029,7 +1218,7 @@ it is a pure read operation.
 
 ---
 
-### Enhancement 12: `ViewPrCommand`
+### Enhancement 13: `ViewPrCommand`
 
 #### Purpose and user value
 `ViewPrCommand` finds and displays a user's personal record for a specific
@@ -1091,7 +1280,7 @@ stopping at the first match, in order to find the maximum value.
   for strength; longer run = better PR for endurance.
 
 
-### Enhancement 13: ViewCalendarCommand and ASCII Calendar Generation
+### Enhancement 14: ViewCalendarCommand and ASCII Calendar Generation
 
 #### Purpose and user value
 The `ViewCalendarCommand` provides a visual "at-a-glance" view of a user's training consistency. By rendering a traditional monthly grid in the terminal, users can quickly identify gaps in their training and visualize their workout "streaks" without scanning a long text history.
@@ -1110,6 +1299,31 @@ This enhancement utilizes the java.time API to handle calendar logic and follows
 2. `YearMonth` is used as the primary data structure to represent the target month.
 3. `ViewCalendarCommand` extracts the "active days" from the `WorkoutList`.
 4. `Ui.showCalendar(...)` performs the complex ASCII grid rendering.
+
+#### Class-level design
+
+**Class Diagram: ViewCalendarCommand Architecture**
+![ViewCalendarCommandClassDiagram](images/ViewCalendarCommandClassDiagram.png)
+
+`ViewCalendarCommand` extends the abstract `Command` base class and holds `targetMonth` (a `YearMonth`) as its only state. It depends on `WorkoutList` to extract workout dates and `Ui` to render the ASCII calendar grid. The command does not modify any state — it is a pure read operation.
+
+#### Sequence of events
+
+**Sequence Diagram: Execution of a `view-calendar` Command (Scenario: Viewing April 2026)**
+![ViewCalendarCommandSequenceDiagram](images/ViewCalendarCommandSequenceDiagram.png)
+
+`ViewCalendarCommand.execute(...)` performs the following steps:
+
+1. Create a `HashSet<Integer>` called `activeDays` to store the day-of-month for workouts matching the target month.
+2. Loop through all workouts in `WorkoutList`, extracting their dates via `getDate()`.
+3. For each workout date, check if it falls within `targetMonth`. If yes, add its `dayOfMonth` to `activeDays`.
+4. Display a header message indicating the target month.
+5. Call `ui.showCalendar(targetMonth, activeDays)` to render the ASCII grid.
+6. The Ui renders a traditional 7-column calendar grid with:
+   - Days of the week as headers (Sunday to Saturday).
+   - Active workout days wrapped in `[ ]` brackets.
+   - Inactive days padded with spaces for alignment.
+   - Proper handling of month boundaries and the first day of the week.
 
 #### Component-level behavior
 
@@ -1136,7 +1350,7 @@ Aspect: Calendar Alignment
 
 ---
 
-### Enhancement 14: Muscle Group Tagging System (`ExerciseDictionary` muscle methods, `TagMuscleCommand`, `UntagMuscleCommand`, `LiftMuscleGroupsCommand`, `ViewMuscleGroupCommand`, and `TrainMuscleCommand`)
+### Enhancement 15: Muscle Group Tagging System (`ExerciseDictionary` muscle methods, `TagMuscleCommand`, `UntagMuscleCommand`, `LiftMuscleGroupsCommand`, `ViewMuscleGroupCommand`, and `TrainMuscleCommand`)
 
 #### Purpose and user value
 
@@ -1298,7 +1512,7 @@ This means custom tagging (both user-added and default tags modified at runtime)
 
 ---
 
-### Enhancement 15: `HistoryCommand` 
+### Enhancement 16: `HistoryCommand` 
 
 #### Purpose and user value
 
@@ -1366,7 +1580,16 @@ Unlike "ready-to-run" implementations, FitLogger's commands are **stateless rega
 but **stateful regarding user input**. They are instantiated with arguments by the `Parser` but only gain 
 access to application data (`WorkoutList`) and persistence (`Storage`) at the moment of execution.
 
-![Command Class Diagram](images/command-design.png)
+#### Class-level design
+
+![CommandClassDiagram](images/CommandHierarchy.png)
+
+The diagram above shows representative command implementations (9 examples) organized by functional area:
+- **Workout Management:** `AddWorkoutCommand`, `EditCommand`, `DeleteCommand`, `HistoryCommand`
+- **Workout Querying:** `SearchDateCommand`, `FilterTypeCommand`, `ViewCalendarCommand`
+- **System:** `ExitCommand`, `HelpCommand`
+
+Note: The system implements 20+ Command subclasses in total; this diagram shows representative examples with other commands omitted for clarity. All commands follow the same inheritance pattern from the abstract `Command` base class.
 
 ---
 
@@ -1375,18 +1598,32 @@ access to application data (`WorkoutList`) and persistence (`Storage`) at the mo
 The `Parser` component is a static utility class responsible for transforming raw user input strings into the 
 executable `Command` objects described above.
 
-#### Execution Logic
-The parsing logic is centralized in the `Parser#parse()` method, following a two-stage process:
-1.  **Tokenization:** The input string is split into a `commandWord` and `arguments` using the `splitInput` 
-helper method.
-2.  **Command Dispatch:** A `switch` block routes the `commandWord` to the appropriate command constructor 
-  (e.g., `DeleteCommand`, `ExitCommand`) or specialized sub-parser methods (e.g., `parseAddRun`, `parseAddLift`).
+#### Parsing strategy
 
-The parser follows the same `parse-then-execute` flow used by the command features described above.
+The parsing logic is centralized in the `Parser#parse()` method, following a **two-stage process**:
 
----
+1.  **Stage 1 — Tokenization:** The input string is split into a `commandWord` and `arguments` using the `splitInput` helper method.
+   - Example: `"edit 1 distance/5"` → commandWord: `"edit"`, arguments: `"1 distance/5"`
 
-### Design Considerations
+2.  **Stage 2 — Command Dispatch:** Based on the `commandWord`, the parser routes to the appropriate command constructor or sub-parser method:
+   - **Simple commands** (e.g., `delete`, `exit`, `help`): Direct instantiation with minimal argument processing.
+   - **Complex commands** (e.g., `add-run`, `add-lift`, `edit`): Call specialized sub-parser methods (e.g., `parseAddRun()`), which validate formats, create domain objects (`Workout`, etc.), and return wrapped commands.
+   - **Database commands** (e.g., `add-shortcut`, `filter`): Instantiate with access to shared `ExerciseDictionary`.
+   - **Query commands** (e.g., `search-date`, `view-calendar`): Parse parameters and create query commands with constraints.
+
+#### Sequence of events
+
+![ParserDispatchDiagram](images/ParserDiagram.png)
+
+The diagram above illustrates the general parsing pattern with two representative examples:
+- **Example 1 (Simple):** `delete` command shows direct instantiation without sub-parsing.
+- **Example 2 (Complex):** `add-run` command shows sub-parser invocation, object creation, and command wrapping.
+
+Other commands omitted for clarity; all follow one of these two patterns:
+- **Type 1 — Direct Instantiation:** No intermediate parsing step; arguments go directly to command constructor.
+- **Type 2 — Sub-Parser + Object Creation:** Parser method validates input, creates domain objects, wraps in command.
+
+#### Design considerations
 
 **Aspect: Class Structure**
 * **Current Implementation:** Static utility class.
@@ -1463,7 +1700,7 @@ and custom shortcuts between app sessions.
 
 ## Instructions for manual testing
 
-These instructions assume the tester has launched FitLogger using `java -jar fitlogger.jar`.
+These instructions assume the tester has launched FitLogger using `java -jar [CS2113-F09-1][FitLogger].jar`.
 Start with a clean or disposable save file when testing destructive commands such as `delete`.
 
 ### Preparing sample data

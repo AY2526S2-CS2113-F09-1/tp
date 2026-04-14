@@ -1,4 +1,4 @@
-@startuml
+@startuml TagMuscleSequenceDiagram
 participant ":Parser" as Parser
 participant "t:TagMuscleCommand" as Tag
 participant "d:ExerciseDictionary" as Dictionary

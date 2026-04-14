@@ -1,4 +1,4 @@
-@startuml
+@startuml ArchitectureDiagram
 title FitLogger architecture overview
 
 skinparam componentStyle rectangle

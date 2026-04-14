@@ -1,4 +1,4 @@
-@startuml
+@startuml ViewPrSequenceDiagram
 actor User
 participant ":FitLogger" as FL
 participant ":Parser" as P

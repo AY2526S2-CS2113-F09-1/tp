@@ -1,4 +1,4 @@
-@startuml
+@startuml ExerciseDictionaryObjectDiagram
 hide empty members
 
 object "<u>:ExerciseDictionary</u>" as ExerciseDictionary

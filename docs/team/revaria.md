@@ -76,6 +76,27 @@ Wrote the following sections:
 
 - **Bug fixes and improvements** — Updated documentation for filter command parsing to support multi-word muscle groups with underscore notation (e.g., `upper_back`, `lower_back`).
 
+- **UML Diagrams** — Created and integrated comprehensive PlantUML diagrams:
+
+  **Enhancement-specific diagrams:**
+  - `FilterTypeCommandClassDiagram.puml`: Visualizes `FilterTypeCommand` class structure, dependencies on `ExerciseDictionary`, `WorkoutList`, and `Ui`, plus the `MuscleGroup` enum
+  - `FilterTypeCommandSequenceDiagram.puml`: Shows the complete execution flow of the filter command from user input through parsing, lookup, and result display
+  - `ViewCalendarCommandClassDiagram.puml`: Illustrates `ViewCalendarCommand` interaction with `WorkoutList` and `Ui` for calendar rendering
+  - `ViewCalendarCommandSequenceDiagram.puml`: Demonstrates the sequence of calendar generation including date collection, deduplication, and ASCII grid rendering
+
+  **System architecture diagrams:**
+  - `CommandDiagram.puml`: Vertical-layout command hierarchy showing 9 representative command implementations organized by functional area (Workout Management, Querying, System). Note indicates 20+ commands follow the same inheritance pattern; designed for PDF compatibility.
+  - `ParserDiagram.puml`: Simplified sequence diagram showing the general parsing pattern with 2 representative examples (simple command: `delete`, complex command: `add-run`). Illustrates two parsing strategies: Type 1 (direct instantiation) and Type 2 (sub-parser + object creation).
+
+- **Developer Guide Integration** — Enhanced DeveloperGuide.md sections with comprehensive system architecture details:
+  - **Command Architecture section:** Added enhanced description of command inheritance hierarchy, design rationale (separation of concerns, extensibility, uniform error handling), and clarified that 20+ concrete commands all follow the same pattern
+  - **Parser Implementation section:** Completely restructured to show the two-stage parsing process:
+    - Stage 1: Tokenization (split into commandWord and arguments)
+    - Stage 2: Command Dispatch (route to simple instantiation, sub-parser methods, or database commands)
+    - Added `ParserDiagram` reference showing parsing flow with representative examples
+    - Documented two command parsing patterns: Type 1 (direct instantiation) and Type 2 (sub-parser + object creation)
+    - Updated design considerations to focus on static utility class rationale and data validation gatekeeping
+
 ### Contributions to testing
 
 Implemented comprehensive test coverage for all three major features, achieving 100% code path coverage and extensive edge case validation:
@@ -110,7 +131,7 @@ Thorough validation of date-based workout filtering:
 - `execute_boundaryDateJanuary1st_returnsMatchingWorkouts`: validates year boundary
 - `execute_differentMonthSameDay_noMatches`: ensures month is considered in matching
 
-#### Test Suite 3: `ViewCalendarCommandTest` — 13 tests (NEW)
+#### Test Suite 3: `ViewCalendarCommandTest` — 13 tests
 Complete calendar visualization test coverage:
 - Single month with various workout distributions
 - Months with no workouts

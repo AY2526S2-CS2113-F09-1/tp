@@ -1,7 +1,8 @@
-package fitlogger.command;
+package fitlogger;
 
 import fitlogger.exercisedictionary.ExerciseDictionary;
 import fitlogger.musclegroup.MuscleGroup;
+import fitlogger.command.TrainMuscleCommand;
 import fitlogger.ui.Ui;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

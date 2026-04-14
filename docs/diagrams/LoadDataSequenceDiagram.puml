@@ -1,4 +1,4 @@
-@startuml
+@startuml LoadDataSequenceDiagram
 participant ":FitLogger" as FL
 participant ":Storage" as ST
 participant ":Scanner" as SC

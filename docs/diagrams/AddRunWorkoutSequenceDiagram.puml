@@ -1,4 +1,4 @@
-@startuml
+@startuml AddRunWorkoutSequenceDiagram
 participant ":Parser" as Parser
 participant ":RunWorkout" as RunWorkout
 participant ":AddWorkoutCommand" as AddWorkoutCommand

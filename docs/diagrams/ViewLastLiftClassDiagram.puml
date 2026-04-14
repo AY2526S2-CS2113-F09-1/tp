@@ -1,4 +1,4 @@
-@startuml
+@startuml ViewLastLiftClassDiagram
 abstract class Command {
     +execute(storage, workouts, ui, profile)
     +isExit() : boolean

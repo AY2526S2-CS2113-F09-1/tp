@@ -1,0 +1,50 @@
+@startuml ViewCalendarCommandSequenceDiagram
+hide footbox
+
+actor User
+participant ":FitLogger" as Main
+participant ":Parser" as Parser
+participant "command:ViewCalendarCommand" as Cmd
+participant ":WorkoutList" as Workouts
+participant "workout:Workout" as Workout
+participant ":Ui" as Ui
+
+User -> Main : view-calendar 2026-04
+activate Main
+
+Main -> Parser : parse("view-calendar 2026-04", workouts, dictionary)
+activate Parser
+Parser --> Main : new ViewCalendarCommand(2026-04)
+deactivate Parser
+
+Main -> Cmd : execute(storage, workouts, ui, profile)
+activate Cmd
+
+Cmd -> Cmd : create activeDays as HashSet<Integer>
+
+loop i = 0 to workouts.getSize() - 1
+	Cmd -> Workouts : getWorkoutAtIndex(i)
+	Workouts --> Cmd : workout
+	Cmd -> Workout : getDate()
+	Workout --> Cmd : date (LocalDate)
+	Cmd -> Cmd : check if date.getMonth() == targetMonth
+	alt month matches
+		Cmd -> Cmd : extract dayOfMonth\nactiveDays.add(dayOfMonth)
+	end
+end
+
+Cmd -> Ui : showMessage("Calendar for 2026-04:")
+Cmd -> Ui : showLine()
+
+Cmd -> Ui : showCalendar(2026-04, activeDays)
+activate Ui
+note right : render ASCII grid with:\n- fixed-width format (%2d)\n- [day] for active days\n-  day  for inactive days
+Ui --> Cmd
+deactivate Ui
+
+Cmd -> Ui : showLine()
+
+Cmd --> Main
+deactivate Cmd
+deactivate Main
+@enduml

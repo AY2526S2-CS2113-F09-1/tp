@@ -1,0 +1,59 @@
+@startuml FilterTypeCommandClassDiagram
+hide circle
+skinparam classAttributeIconSize 0
+
+abstract class Command {
+	+execute(...) : void
+}
+
+class FilterTypeCommand {
+	-targetCategories : Set<String>
+	-parseCategories(input : String) : Set<String>
+	+execute(...) : void
+}
+
+class WorkoutList {
+	+getSize() : int
+	+getWorkoutAtIndex(index : int) : Workout
+	+getWorkouts() : List<Workout>
+}
+
+class StrengthWorkout {
+	+getDescription() : String
+}
+
+class ExerciseDictionary {
+	+getShortcutIdFor(description : String) : int
+	+getMusclesFor(id : int) : Set<MuscleGroup>
+}
+
+enum MuscleGroup {
+	QUADS
+	HAMSTRINGS
+	CALVES
+	GLUTES
+	LOWER_BACK
+	UPPER_BACK
+	CHEST
+	BACK
+	SHOULDERS
+	BICEPS
+	TRICEPS
+	FOREARMS
+	CORE
+	ABS
+}
+
+class Ui {
+	+showMessage(message : String) : void
+	+showLine() : void
+	+showWorkoutList(...) : void
+}
+
+Command <|-- FilterTypeCommand
+FilterTypeCommand ..> WorkoutList
+FilterTypeCommand ..> ExerciseDictionary
+FilterTypeCommand ..> Ui
+WorkoutList --> "*" StrengthWorkout
+ExerciseDictionary --> "*" MuscleGroup
+@enduml

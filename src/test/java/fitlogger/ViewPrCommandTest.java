@@ -1,9 +1,10 @@
-package fitlogger.command;
+package fitlogger;
 
 import fitlogger.exception.FitLoggerException;
 import fitlogger.profile.UserProfile;
 import fitlogger.storage.Storage;
 import fitlogger.ui.Ui;
+import fitlogger.command.ViewPrCommand;
 import fitlogger.workout.RunWorkout;
 import fitlogger.workout.StrengthWorkout;
 import fitlogger.workoutlist.WorkoutList;
@@ -48,7 +49,8 @@ class ViewPrCommandTest {
 
     @Test
     void execute_singleStrengthWorkout_displaysPr() throws FitLoggerException {
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
 
         new ViewPrCommand("Bench Press").execute(storage, workouts, ui, profile);
 
@@ -59,9 +61,12 @@ class ViewPrCommandTest {
 
     @Test
     void execute_multipleStrengthWorkouts_displaysHighestWeight() throws FitLoggerException {
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 100.0, 3, 5, LocalDate.of(2026, 3, 10)));
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 90.0, 4, 6, LocalDate.of(2026, 3, 20)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 100.0, 3, 5, LocalDate.of(2026, 3, 10)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 90.0, 4, 6, LocalDate.of(2026, 3, 20)));
 
         new ViewPrCommand("Bench Press").execute(storage, workouts, ui, profile);
 
@@ -140,7 +145,8 @@ class ViewPrCommandTest {
 
     @Test
     void execute_caseInsensitiveMatch_findsPr() throws FitLoggerException {
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
 
         new ViewPrCommand("bench press").execute(storage, workouts, ui, profile);
 
@@ -152,7 +158,8 @@ class ViewPrCommandTest {
     @Test
     void execute_mixedWorkoutTypes_onlyMatchesCorrectType() throws FitLoggerException {
         workouts.addWorkout(new RunWorkout("Bench Press", LocalDate.of(2026, 3, 1), 5.0, 30.0));
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 5)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 5)));
 
         new ViewPrCommand("Bench Press").execute(storage, workouts, ui, profile);
 

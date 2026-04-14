@@ -1,4 +1,4 @@
-@startuml
+@startuml SaveDataSequenceDiagram
 participant ":FitLogger" as FL
 participant ":ExitCommand" as CMD
 participant ":Storage" as ST

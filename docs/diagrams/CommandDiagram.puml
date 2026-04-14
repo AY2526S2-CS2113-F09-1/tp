@@ -1,0 +1,93 @@
+@startuml CommandHierarchy
+skinparam handwritten false
+skinparam classAttributeIconSize 0
+hide circle
+skinparam direction top to bottom
+
+' Abstract Base Class
+abstract class Command {
+    + {abstract} execute(storage: Storage, workouts: WorkoutList, ui: Ui): void
+    + isExit(): boolean
+}
+
+' ============ Workout Management Commands ============
+class AddWorkoutCommand {
+    - workoutToAdd: Workout
+    + execute(...)
+}
+
+class EditCommand {
+    - index: int
+    - field: String
+    - value: String
+    + execute(...)
+}
+
+class DeleteCommand {
+    - index: int
+    + execute(...)
+}
+
+class HistoryCommand {
+    - limit: int
+    + execute(...)
+}
+
+' ============ Workout Querying Commands ============
+class SearchDateCommand {
+    - targetDate: LocalDate
+    + execute(...)
+}
+
+class FilterTypeCommand {
+    - targetCategories: Set<String>
+    + execute(...)
+}
+
+class ViewCalendarCommand {
+    - targetMonth: YearMonth
+    + execute(...)
+}
+
+' ============ System Commands ============
+class ExitCommand {
+    + execute(...)
+    + isExit(): boolean
+}
+
+class HelpCommand {
+    + execute(...)
+}
+
+' ============ Inheritance Hierarchy ============
+Command <|-- AddWorkoutCommand
+Command <|-- EditCommand
+Command <|-- DeleteCommand
+Command <|-- HistoryCommand
+Command <|-- SearchDateCommand
+Command <|-- FilterTypeCommand
+Command <|-- ViewCalendarCommand
+Command <|-- ExitCommand
+Command <|-- HelpCommand
+
+' Vertical layout hints to force top-to-bottom rendering
+AddWorkoutCommand -down[hidden]-> EditCommand
+EditCommand -down[hidden]-> DeleteCommand
+DeleteCommand -down[hidden]-> HistoryCommand
+HistoryCommand -down[hidden]-> SearchDateCommand
+SearchDateCommand -down[hidden]-> FilterTypeCommand
+FilterTypeCommand -down[hidden]-> ViewCalendarCommand
+ViewCalendarCommand -down[hidden]-> ExitCommand
+ExitCommand -down[hidden]-> HelpCommand
+
+note bottom of Command
+    This diagram shows representative command examples.
+    Other commands omitted for clarity (AddShortcutCommand,
+    ViewDatabaseCommand, TagMuscleCommand, ViewLastLiftCommand,
+    ViewPrCommand, ProfileCommands, TrainMuscleCommand, etc.).
+    
+    The system implements 20+ Command subclasses in total,
+    all following this same inheritance pattern.
+end note
+
+@enduml

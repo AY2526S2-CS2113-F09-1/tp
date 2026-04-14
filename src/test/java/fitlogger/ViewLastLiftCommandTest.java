@@ -1,9 +1,10 @@
-package fitlogger.command;
+package fitlogger;
 
 import fitlogger.exception.FitLoggerException;
 import fitlogger.profile.UserProfile;
 import fitlogger.storage.Storage;
 import fitlogger.ui.Ui;
+import fitlogger.command.ViewLastLiftCommand;
 import fitlogger.workout.RunWorkout;
 import fitlogger.workout.StrengthWorkout;
 import fitlogger.workoutlist.WorkoutList;
@@ -48,7 +49,8 @@ class ViewLastLiftCommandTest {
 
     @Test
     void execute_singleMatchingLift_displaysStats() throws FitLoggerException {
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
 
         new ViewLastLiftCommand("Bench Press").execute(storage, workouts, ui, profile);
 
@@ -61,8 +63,10 @@ class ViewLastLiftCommandTest {
 
     @Test
     void execute_multipleMatchingLifts_displaysLastOne() throws FitLoggerException {
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 90.0, 4, 6, LocalDate.of(2026, 3, 10)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 90.0, 4, 6, LocalDate.of(2026, 3, 10)));
 
         new ViewLastLiftCommand("Bench Press").execute(storage, workouts, ui, profile);
 
@@ -74,7 +78,8 @@ class ViewLastLiftCommandTest {
 
     @Test
     void execute_caseInsensitiveMatch_displaysStats() throws FitLoggerException {
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
 
         new ViewLastLiftCommand("bench press").execute(storage, workouts, ui, profile);
 

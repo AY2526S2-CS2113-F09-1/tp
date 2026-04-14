@@ -1,4 +1,4 @@
-@startuml
+@startuml DeleteCommandSequenceDiagram
 hide footbox
 
 actor User

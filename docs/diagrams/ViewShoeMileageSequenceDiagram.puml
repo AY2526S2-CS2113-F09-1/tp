@@ -1,4 +1,4 @@
-@startuml
+@startuml ViewShoeMileageSequenceDiagram
 participant ":ViewShoeMileageCommand" as Command
 participant ":WorkoutList" as List
 participant "w:RunWorkout" as Run
