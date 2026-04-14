@@ -54,6 +54,7 @@ My main focus was improving workout editing and deletion workflows, adding date-
   - command save-failure handling
 - Added design notes for parser validation hardening and file-based logging.
 - Updated command architecture descriptions to match current `execute(storage, workouts, ui, profile)` signature.
+- Added glossary and parts of the manual testing section for features I implemented.
 
 ### Contributions to Team-Based Tasks
 - [Pull Requests authored]-https://github.com/AY2526S2-CS2113-F09-1/tp/pulls?q=is%3Apr+author%3Adaniel-czj
