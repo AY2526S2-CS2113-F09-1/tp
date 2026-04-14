@@ -1,4 +1,4 @@
-@startuml
+@startuml HistorySequenceDiagram
 participant ":FitLogger" as Main
 participant ":Parser" as Parser
 participant "h:HistoryCommand" as History

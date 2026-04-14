@@ -1,6 +1,4 @@
-@startuml
-hide footbox
-
+@startuml SaveDataSequenceDiagram
 participant ":FitLogger" as FL
 participant "command:ExitCommand" as CMD
 participant ":Storage" as ST

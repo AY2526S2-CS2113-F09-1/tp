@@ -1,6 +1,5 @@
-@startuml
-hide footbox
-
+@startuml ViewLastLiftSequenceDiagram
+actor User
 participant ":FitLogger" as FL
 participant ":Parser" as P
 participant "command:ViewLastLiftCommand" as CMD

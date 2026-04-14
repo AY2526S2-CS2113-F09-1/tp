@@ -1,6 +1,4 @@
-@startuml
-hide footbox
-
+@startuml LoadDataSequenceDiagram
 participant ":FitLogger" as FL
 participant ":Storage" as ST
 participant "scanner:Scanner" as SC

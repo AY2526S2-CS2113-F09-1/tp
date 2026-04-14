@@ -1,4 +1,4 @@
-@startuml SearchDateCommandClassDiagram
+@startuml ViewCalendarCommandClassDiagram
 hide circle
 skinparam classAttributeIconSize 0
 
@@ -6,8 +6,8 @@ abstract class Command {
 	+execute(...) : void
 }
 
-class SearchDateCommand {
-	-targetDate : LocalDate
+class ViewCalendarCommand {
+	-targetMonth : YearMonth
 	+execute(...) : void
 }
 
@@ -21,14 +21,14 @@ abstract class Workout {
 }
 
 class Ui {
+	+showCalendar(targetMonth : YearMonth, activeDays : Set<Integer>) : void
 	+showMessage(message : String) : void
 	+showLine() : void
-	+showWorkoutList(...) : void
 }
 
-Command <|-- SearchDateCommand
-SearchDateCommand ..> WorkoutList
-SearchDateCommand ..> Workout
-SearchDateCommand ..> Ui
+Command <|-- ViewCalendarCommand
+ViewCalendarCommand ..> WorkoutList
+ViewCalendarCommand ..> Workout
+ViewCalendarCommand ..> Ui
 WorkoutList --> "*" Workout
 @enduml

@@ -1,4 +1,4 @@
-@startuml
+@startuml ShortcutResolutionSequenceDiagram
 hide footbox
 
 participant ":FitLogger" as Main

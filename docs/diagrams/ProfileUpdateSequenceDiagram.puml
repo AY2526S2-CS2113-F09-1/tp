@@ -1,4 +1,4 @@
-@startuml
+@startuml ProfileUpdateSequenceDiagram
 participant ":FitLogger" as Main
 participant ":Parser" as Parser
 participant "u:UpdateProfileCommand" as Update

@@ -1,0 +1,75 @@
+@startuml ParserDiagram
+skinparam handwritten false
+skinparam ParticipantPadding 20
+
+participant ":FitLogger" as FitLogger
+participant ":Parser" as Parser
+participant "command:Command" as Cmd
+
+[-> FitLogger : run()
+activate FitLogger
+
+FitLogger -> Parser : parse(fullCommand, workouts, dictionary)
+activate Parser
+
+note over Parser
+    Stage 1: Tokenization
+    commandWord = splitInput(fullCommand)[0]
+    arguments = remaining input
+end note
+
+alt commandWord == "delete"
+    note over Parser : Simple command (no sub-parsing needed)
+    create "delCmd:DeleteCommand" as DeleteCmd
+    Parser -> DeleteCmd : new DeleteCommand(index)
+    DeleteCmd --> Parser : command
+    deactivate DeleteCmd
+
+else commandWord == "add-run"
+    note over Parser : Complex command (requires sub-parser and object creation)
+    Parser -> Parser : parseAddRun(arguments, ...)
+    activate Parser
+    
+    note over Parser : Validate format, extract distance & duration
+    create "w:RunWorkout" as Workout
+    Parser -> Workout : new RunWorkout(name, distance, duration, date)
+    
+    create "addCmd:AddWorkoutCommand" as AddCmd
+    Parser -> AddCmd : new AddWorkoutCommand(runWorkout)
+    AddCmd --> Parser : command
+    deactivate AddCmd
+    
+    deactivate Parser
+
+else ...other commands (edit, filter, search-date, view-calendar, etc.)
+    note over Parser
+        Similar patterns:
+        - Simple commands: direct instantiation (exit, help, history)
+        - Complex commands: call sub-parser, create objects, wrap in command
+        - Database commands: instantiate with dictionary access
+        - Query commands: instantiate with parameters
+    end note
+end
+
+Parser --> FitLogger : Command object (or exception)
+deactivate Parser
+
+FitLogger -> Cmd : execute(storage, workouts, ui, profile)
+activate Cmd
+Cmd --> FitLogger : execution result
+deactivate Cmd
+
+[<-- FitLogger
+deactivate FitLogger
+
+note right of Parser
+    This diagram shows the general parsing pattern
+    with representative examples (delete, add-run).
+    
+    Other commands omitted for clarity, but all follow
+    these same two patterns:
+    - Type 1: Direct instantiation (no sub-parsing)
+    - Type 2: Sub-parser call + object creation + command wrapping
+end note
+
+@enduml

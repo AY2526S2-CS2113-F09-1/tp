@@ -1,4 +1,4 @@
-@startuml
+@startuml MuscleTaggingObjectDiagram
 object "<u>:ExerciseDictionary</u>" as Dictionary {
 }
 

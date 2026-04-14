@@ -1,7 +1,4 @@
-@startuml
-hide circle
-skinparam classAttributeIconSize 0
-
+@startuml ViewPrClassDiagram
 abstract class Command {
     + execute(Storage, WorkoutList, Ui, UserProfile): void
     + isExit(): boolean

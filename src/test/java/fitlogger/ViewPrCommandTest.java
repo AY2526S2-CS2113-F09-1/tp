@@ -1,9 +1,10 @@
-package fitlogger.command;
+package fitlogger;
 
 import fitlogger.exception.FitLoggerException;
 import fitlogger.profile.UserProfile;
 import fitlogger.storage.Storage;
 import fitlogger.ui.Ui;
+import fitlogger.command.ViewPrCommand;
 import fitlogger.workout.RunWorkout;
 import fitlogger.workout.StrengthWorkout;
 import fitlogger.workoutlist.WorkoutList;
@@ -54,8 +55,8 @@ class ViewPrCommandTest {
 
     @Test
     void execute_singleStrengthWorkout_displaysPr() throws FitLoggerException {
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 80.0, 3, 8,
-                LocalDate.of(2026, 3, 1)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
 
         new ViewPrCommand("Bench Press").execute(storage, workouts, ui, profile);
 
@@ -66,12 +67,12 @@ class ViewPrCommandTest {
 
     @Test
     void execute_multipleStrengthWorkouts_displaysHighestWeight() throws FitLoggerException {
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 80.0, 3, 8,
-                LocalDate.of(2026, 3, 1)));
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 100.0, 3, 5,
-                LocalDate.of(2026, 3, 10)));
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 90.0, 4, 6,
-                LocalDate.of(2026, 3, 20)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 100.0, 3, 5, LocalDate.of(2026, 3, 10)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 90.0, 4, 6, LocalDate.of(2026, 3, 20)));
 
         new ViewPrCommand("Bench Press").execute(storage, workouts, ui, profile);
 
@@ -164,11 +165,27 @@ class ViewPrCommandTest {
 
     @Test
     void execute_caseInsensitiveMatch_findsPr() throws FitLoggerException {
-        workouts.addWorkout(new StrengthWorkout("Bench Press", 80.0, 3, 8,
-                LocalDate.of(2026, 3, 1)));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 1)));
 
         new ViewPrCommand("bench press").execute(storage, workouts, ui, profile);
 
         assertTrue(getOutput().contains("Personal Record for: Bench Press"));
+    }
+
+    // ── mixed workout types ───────────────────────────────────────────────────
+
+    @Test
+    void execute_mixedWorkoutTypes_onlyMatchesCorrectType() throws FitLoggerException {
+        workouts.addWorkout(new RunWorkout("Bench Press", LocalDate.of(2026, 3, 1), 5.0, 30.0));
+        workouts.addWorkout(
+                new StrengthWorkout("Bench Press", 80.0, 3, 8, LocalDate.of(2026, 3, 5)));
+
+        new ViewPrCommand("Bench Press").execute(storage, workouts, ui, profile);
+
+        // Both match by name — whichever has a higher comparable value wins
+        // Run: 5.0 distance, Lift: 80.0 weight — lift wins
+        String output = getOutput();
+        assertTrue(output.contains("80.0kg"));
     }
 }

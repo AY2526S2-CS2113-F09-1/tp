@@ -1,0 +1,56 @@
+@startuml FilterTypeCommandSequenceDiagram
+hide footbox
+
+actor User
+participant ":FitLogger" as Main
+participant ":Parser" as Parser
+participant "command:FilterTypeCommand" as Cmd
+participant ":WorkoutList" as Workouts
+participant "strength:StrengthWorkout" as Workout
+participant ":ExerciseDictionary" as Dict
+participant ":Ui" as Ui
+
+User -> Main : filter quads, glutes
+activate Main
+
+Main -> Parser : parse("filter quads, glutes", workouts, dictionary)
+activate Parser
+Parser --> Main : new FilterTypeCommand("quads, glutes")
+deactivate Parser
+
+Main -> Cmd : execute(storage, workouts, ui, profile)
+activate Cmd
+
+Cmd -> Cmd : parseCategories("quads, glutes")
+note right : split by comma, space, replace underscore\nresult: {"quads", "glutes"}
+
+Cmd -> Ui : showMessage("Filter results...")
+Cmd -> Ui : showLine()
+
+loop i = 0 to workouts.getSize() - 1
+	Cmd -> Workouts : getWorkoutAtIndex(i)
+	Workouts --> Cmd : workout
+	Cmd -> Cmd : check instanceof StrengthWorkout
+	alt is StrengthWorkout
+		Cmd -> Workout : getDescription()
+		Workout --> Cmd : description
+		Cmd -> Dict : getShortcutIdFor(description)
+		Dict --> Cmd : shortcutId
+		alt shortcutId != -1
+			Cmd -> Dict : getMusclesFor(shortcutId)
+			Dict --> Cmd : muscleGroups
+			Cmd -> Cmd : matchesAnyCategory(muscleGroups)
+			alt match found
+				Cmd -> Cmd : add to filteredList
+			end
+		end
+	end
+end
+
+Cmd -> Ui : showWorkoutList(filteredList)
+Cmd -> Ui : showLine()
+
+Cmd --> Main
+deactivate Cmd
+deactivate Main
+@enduml

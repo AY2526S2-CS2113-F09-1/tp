@@ -1,4 +1,5 @@
-@startuml
+@startuml ViewPrSequenceDiagram
+actor User
 hide footbox
 
 participant ":FitLogger" as FL
