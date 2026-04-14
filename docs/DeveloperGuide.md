@@ -426,10 +426,20 @@ Domain validation is enforced directly in the setters, keeping invalid state fro
 
 The two run-specific fields and their constraints are:
 
-|Field|Type|Constraint|
-|---|---|---|
-|`distance`|`double`|Must be finite and > 0|
-|`durationMinutes`|`double`|Must be finite and > 0|
+|Input error|Error message shown|
+|---|---|
+|Missing arguments|`Missing arguments for add-run.` + usage hint|
+|Missing flag (e.g. no `t/`)|`Invalid format for add-run.` + usage hint|
+|Flags in wrong order (e.g. `t/` before `d/`)|`Invalid format for add-run.` + usage hint|
+|Non-numeric distance/duration|`Distance and duration must be valid decimal numbers.` + usage hint|
+|Scientific notation distance/duration (e.g. `5e1`)|`Distance and duration must be valid decimal numbers.` + usage hint|
+|Zero or negative distance|`Distance must be a positive number.`|
+|Zero or negative duration|`Duration must be a positive number.`|
+|Non-finite value (`NaN`, `Infinity`)|`Distance and duration must be realistic positive numbers.`|
+|Distance exceeds 1000 km|`Distance cannot exceed 1000.0km.`|
+|Duration exceeds 14400 mins|`Duration cannot exceed 10 days (14400 minutes).`|
+|Extra text after duration value|`Invalid format. No additional text allowed after duration.`|
+|Name contains `\|` or `/`|`Run name must not contain '\|' or '/'`|
 
 ### Sequence of events
 The sequence diagram below shows how a run is logged when the user enters `add-run Jog d/5 t/30`.
@@ -444,13 +454,11 @@ The interaction between the `Parser` and the `RunWorkout` constructor is designe
 
 **Sequence of validation:**
 
-1. **Tokenization:** `Parser` identifies the `d/` and `t/` flags.
-
-2. **Format Validation:** `Parser` checks that the strings match a plain-decimal regex (rejecting `8e1`).
-
-3. **Instance Creation:** The `RunWorkout` constructor is invoked.
-
-4. **Domain Validation:** The constructor calls internal setters; if any field violates a constraint, construction fails.
+- **Tokenization:** `Parser` identifies the `d/` and `t/` flags.
+- **Format Validation:** `Parser` checks that the strings match a plain-decimal regex (rejecting `8e1`).
+- **Delimiter Validation:** The run name is validated against reserved storage delimiters (`|` and `/`); a `FitLoggerException` is thrown if either is present.
+- **Instance Creation:** The `RunWorkout` constructor is invoked.
+- **Domain Validation:** The constructor calls internal setters; if any field violates a constraint, construction fails.
 
 #### Storage format
 
