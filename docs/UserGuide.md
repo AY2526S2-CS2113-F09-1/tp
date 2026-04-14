@@ -7,9 +7,9 @@ FitLogger is a lightning-fast Command Line Interface (CLI) fitness tracker desig
 ## Quick Start
 
 1. Ensure you have Java `17` or above installed on your computer.
-2. Download the latest `fitlogger.jar` file from our [Releases](https://github.com/dinvsh/tp/releases) page.
+2. Download the latest `[CS2113-F09-1][FitLogger].jar` file from our [Releases](https://github.com/dinvsh/tp/releases) page.
 3. Copy the file to the folder where you want to store your fitness data.
-4. Open a command terminal (e.g., Command Prompt, PowerShell, or Terminal), navigate to the folder, and run the application using the command: `java -jar fitlogger.jar`
+4. Open a command terminal (e.g., Command Prompt, PowerShell, or Terminal), navigate to the folder, and run the application using the command: `java -jar [CS2113-F09-1][FitLogger].jar`
 5. Type `help` to see the list of available commands and start logging!
 
 ## Features
@@ -23,6 +23,7 @@ Format: `view-database`
 - Shortcuts are listed separately for **Strength Shortcuts** and **Run Shortcuts**.
 - The database comes pre-loaded with common exercises.
 - Custom shortcuts you have added with `add-shortcut` also appear here.
+- Ignores all trailing inputs
 
 Example output:
 ```
@@ -40,11 +41,11 @@ Run Shortcuts:
 
 ---
 
-### Viewing detailed database: 'view-detailed-database'
+### Viewing detailed database: `view-detailed-database`
 
 Displays all exercise shortcuts, their IDs, and their associated muscle groups in one view.
 
-Format: 'view-detailed-database'
+Format: `view-detailed-database`
 
 - Similar to 'view-database' but with associated muscle groups for lift shortcuts shown
 - Ignores all trailing inputs
@@ -313,17 +314,21 @@ Examples:
 `view-calendar 2026-04` (Shows April 2026)
 
 Sample output:
+```
+      APRIL 2026  
 
-Plaintext
------------------------------------------------------
-      APRIL 2026
- Su  Mo  Tu  We  Th  Fr  Sa
-              1   2   3   4
-   5   6   7  [8]  9  10  11
-  12  13  14  15  16 [17] 18
-  19  20  21  22  23  24  25
-  26  27  28  29  30
------------------------------------------------------
+Su  Mo  Tu  We  Th  Fr  Sa
+
+             1   2   3   4
+
+ 5   6   7  [8]  9  10  11
+
+12  13  14  15  16 [17] 18
+
+19  20  21  22  23  24  25
+
+26  27  28  29  30
+```
 
 Invalid input example:
 
