@@ -1413,13 +1413,16 @@ FitLogger provides a blazingly fast, distraction-free environment to log mixed-m
 ## User Stories
 
 |Version| As a ... | I want to ... | So that I can ...|
-|--------|----------|---------------|------------------|
-|v1.0|new user|see usage instructions|refer to them when I forget how to use the application|
-|v1.0|user|delete an unwanted workout by index|remove duplicate or accidental entries from my history|
-|v1.0|user|exit the application safely|save my workouts before the program closes|
-|v2.0|user|edit a wrongly entered workout field|correct logging mistakes without deleting and recreating the workout|
-|v2.0|user|search workouts by date|review what I trained on a specific day|
-|v2.0|user|receive clear errors for malformed commands|understand what went wrong and how to correct my input|
+|----|----------|---------------|------------------|
+|v1.0| new user |see usage instructions|refer to them when I forget how to use the application|
+|v1.0| user     |delete an unwanted workout by index|remove duplicate or accidental entries from my history|
+|v1.0| user     |exit the application safely|save my workouts before the program closes|
+|v1.0| user     |save my data to a local file|my logs persist after I close the application|
+|v2.0| user     |edit a wrongly entered workout field|correct logging mistakes without deleting and recreating the workout|
+|v2.0| user     |search workouts by date|review what I trained on a specific day|
+|v2.0| user     |receive clear errors for malformed commands|understand what went wrong and how to correct my input|
+|v2.0| user     |search for last lift stats for an activity|I know what weight and reps to aim for in the current session to ensure progressive training|
+|v2.0| user     |see my best efforts|I can track my training progress|
 
 ## Non-Functional Requirements
 
@@ -1551,6 +1554,84 @@ Start with a clean or disposable save file when testing destructive commands suc
 3. Restart FitLogger.
    - Expected: previously saved workouts are loaded again, confirming that exit saved successfully.
 
+### Testing `lastlift`
+
+1. Add two lifts of the same exercise.
+    - Command: `add-lift Bench Press w/80 s/3 r/8`
+    - Command: `add-lift Bench Press w/90 s/4 r/6`
+    - Expected: Both are added successfully.
+
+2. Retrieve the most recent lift.
+    - Command: `lastlift Bench Press`
+    - Expected: Displays the **second** entry (90.0kg, 4 sets, 6 reps), not the first.
+
+3. Test case-insensitivity.
+    - Command: `lastlift bench press`
+    - Expected: Same result as above.
+
+4. Test with no matching exercise.
+    - Command: `lastlift Squat`
+    - Expected: `No record found for exercise: Squat`
+
+5. Test blank input.
+    - Command: `lastlift`
+    - Expected: `Please specify an exercise name. Usage: lastlift <EXERCISE_NAME>`
+
+6. Confirm run workouts are ignored.
+    - Command: `add-run Bench Press d/5 t/30`
+    - Command: `lastlift Bench Press`
+    - Expected: Still shows the most recent **lift** entry, not the run.
+
+---
+
+### Testing `pr`
+
+1. Add multiple lifts of the same exercise with different weights.
+    - Command: `add-lift Deadlift w/100 s/3 r/5`
+    - Command: `add-lift Deadlift w/150 s/1 r/5`
+    - Command: `add-lift Deadlift w/120 s/3 r/5`
+
+2. Retrieve the personal record.
+    - Command: `pr Deadlift`
+    - Expected: Displays the **second** entry (150.0kg) — the highest weight, not the most recent.
+
+3. Test with run workouts.
+    - Command: `add-run Easy Run d/5 t/30`
+    - Command: `add-run Easy Run d/5 t/20`
+    - Command: `pr Easy Run`
+    - Expected: Displays the entry with **shortest duration** (20.0 mins) — the fastest time.
+
+4. Test with no matching exercise.
+    - Command: `pr Pull-up`
+    - Expected: `No record found for exercise: Pull-up`
+
+5. Test blank input.
+    - Command: `pr`
+    - Expected: `Please specify an exercise name. Usage: pr <EXERCISE_NAME>`
+
+---
+
+### Testing `save` and `load` (Storage)
+
+1. Add some workouts and exit cleanly.
+    - Command: `add-lift Squat w/100 s/5 r/5`
+    - Command: `add-run Easy Run d/5 t/30`
+    - Command: `exit`
+    - Expected: `Workouts saved.` followed by `Goodbye! See you at your next workout!`
+
+2. Restart FitLogger.
+    - Command: `history`
+    - Expected: Both workouts from the previous session are restored correctly.
+
+3. Test corrupted save file handling.
+    - Open `data/fitlogger.txt` manually and add a line like `CORRUPTED | bad data`.
+    - Restart FitLogger.
+    - Expected: A warning is printed for the corrupted line but all valid workouts still load correctly.
+
+4. Test first run (no save file).
+    - Delete `data/fitlogger.txt`.
+    - Restart FitLogger.
+    - Expected: FitLogger starts with an empty workout list and no error is shown.
 
 #### Profile Management
 
